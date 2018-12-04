@@ -1,20 +1,66 @@
 ## Chapter 3 数据类型和运算符 ##
 
-
-
-
-
 javadoc工具默认只处理*public*或*protected*修饰的类, 接口, 方法, 成员变量, 构造器和内部类之前的文档注释.
+
+只有对处于多个包下的源文件生成API文档时，才会有概述页面。
+
+常见的javadoc标识：
+
+- @author
+- @version
+- @deprecated
+- @param
+- @return
+- @see
+- @exception
+- @throws
+
+javadoc工具默认不会处理@author和@version标识，需要在执行javadoc命令时显式加入这些选项
+
+API文档中的包描述不是直接放在源文件中，而是单独的一个HTML5文件，通常称为包描述文件，文件名通常是package.html，并与该包的所有Java源文件放在一起。
+
+分号; 花括号{} 方括号[] 圆括号() 逗号, 圆点. 空格 统称为分隔符
 
 protected定义的成员变量被子类访问时有如下限制：
 
 - 当子类和父类在同一包中时，protected相当于public
 - 当子类和父类不在同一包时，在子类内部可以直接使用父类的protected成员，或者通过子类自身实例访问继承自父类的protected成员，但是不能通过父类的实例来访问父类的protected成员。
 
-java的标识符: 字母, 数字(不能打头), 下划线(_), 美元符($).
+java的标识符: 字母, 数字(不能打头), 下划线(`_`不能单独使用), 美元符($).
+不能包含空格
 java的关键字都是小写
 
 java语句可以跨行书写，但是字符串和变量名不能跨行
+
+java有50个关键字和保留字
+
+Java中每个变量和每个表达式都有一个在编译期就确定的类型。
+
+Java的数据类型分类：
+
+- 基本类型(primitive type)： 
+	- 数值类型
+		- 整型：
+			- byte: -128~127 (1 byte, 8 bits)
+			- short: -32768~32767 (2 bytes, 16 bits)
+			- int: -2,147,483,648~2,147,483,647 (4 bytes, 32 bits)
+			- long: -2^31~2^31-1 (8 byt^s, 64 bits)
+		- 字符型(char):(2 bytes, 16 bits)
+		- 浮点型：
+			- float: (4 bytes, 32 bits)
+			- double: (8 bytes, 64 bits)
+	- 布尔类型(boolean)
+- 引用类型(reference type)
+	- 类
+	- 接口
+	- 数组
+	- null type
+
+整数表示法：
+
+- 二进制：0b/0B开头
+- 八进制：0开头
+- 十六进制：0x/0X开头
 
 java使用int作为整型的默认类型,超出int范围时必须在整数的后面添加l或L来表示长整型.
 当数值处于合法范围内,整数可以直接赋值给byte,short;
@@ -26,20 +72,36 @@ java使用int作为整型的默认类型,超出int范围时必须在整数的后
 1. 补码-1，取反，求值，ex： ...11011, -1得11010，取反得00101，求值得5，所以是-5
 2. 补码取反，求值，+1， ex： ...11011, 取反得00100，求值得4，+1得5，所以是-5
 
-所有char类型的值都可以参与算术运算，其值就是字符对应的unicode编号
+所有char类型的值都可以参与算术运算，其值就是字符对应的unicode编号，范围0~65535
+
+只有浮点型的数值才能使用科学计数法表示
+
+Java中浮点类型的默认类型是double
+
+浮点类型的特殊值：
+
+- 正无穷大(POSITIVE_INFINITY)：正数除以0.0，都一样大
+- 负无穷大(NEGATIVE_INFINITY)：负数除以0.0，都一样大
+- 非数(NaN)：0.0除以0.0， 或者对负数开方，或者有浮点数参与的对0取余，与任何数值都不等，包括NaN本身。
+
+只有浮点数除0会得出正无穷大和负无穷大，整数除0会抛出ArithmeticException:/by zero
 
 表达式类型的自动提升
 
 - 所有的byte，short，char都会被提升到int；
 - 整个算数表达式的数据类型自动提升到与表达式中最高等级的操作数同样的类型。
 
-正无穷大都相等，负无穷大也都相等，NaN与任何数值都不相等包括它自己
-只有浮点数除0会得出正无穷大和负无穷大，整数除0会抛出ArithmeticException:/by zero
+支持直接量的数据类型：
+
+- 基本类型
+- 字符串类型
+- null type
+
+由多个字符串常量连接形成的字符串也是字符串常量，存储在常量池中
 
 自动运算符++，--只能用于单个数值型变量，不能操作常量或表达式
 
 赋值运算符支持连续赋值但不推荐
-
 
 移位运算符规则：  
 
@@ -51,14 +113,13 @@ java使用int作为整型的默认类型,超出int范围时必须在整数的后
 - 负数按位非得得到的正数是其绝对值-1，ex: -5得到4
 
 
-
 		byte a = 5;
 		//会出错，右边自动提升为int
 		a = a + 5;
 		//不会出错
 		a += 5;
 		
-等于比较符：数值类型操作数即使不是同一类型，只要值相等就返回true；两个引用类型之间如果没有父子继承关系，就不能用==比较
+等于比较符：数值类型操作数即使不是同一类型，只要值相等就返回true；两个引用类型之间如果没有父子继承关系，就不能用==或!=比较
 
 逻辑运算符的操作数必须是布尔型的变量或常量。
 短路与和或会根据前面表达式的结果来判断是否执行后续表达式，非短路与和或一定会执行所有的表达式
@@ -73,9 +134,13 @@ P69 表3.4 运算符优先级
 
 ## Chapter 4 流程控制与数组 ##
 
+使用if..else语句时总是优先把包含范围小的条件放在前面处理
+
 switch语句后面的控制表达式的数据类型只能是byte，short，char，int四种整数类型，枚举类型和String类型，不能是boolean；case后面只能跟常量；一旦遇到相等的值就会执行以后的代码，不再判断与后面的case，default标签的条件是否相等，除非碰到break才会结束。
 
-while后面仅跟一个分号表明循环体是空循环体，只有一个分号。
+while后面仅跟一个分号表明循环体是空循环体，只有一个分号。此循环也是一个死循环，因为没有迭代语句改变循环条件。
+
+do..while循环条件后面必须有一个分号，表示循环结束
 
 for循环的迭代语句没有像while和do...while放在循环体内，一旦出现在continue语句后就可能不会执行而陷入死循环，for语句的迭代语句在括号内一定会被执行。
 
@@ -85,23 +150,73 @@ for循环括号内的三个语句都可以为空，也可以把初始化语句�
 
 for循环括号内只有2个分号是必须的，其他都是可以省略的。
 
-java中的标签只有放在循环语句之前才有作用。
+在for循环体中不要直接修改循环变量的值，应该重新定义一个临时变量，将循环变量的值赋给临时变量或者循环之前就已定义的变量，再修改这些变量的值。
+
+java中的标签只有放在循环语句之前才有作用。并且在break所在循环的外层循环之前定义才有意义。
+
+数组本身也是一种引用类型。定义数值时不能指定数组的长度。
 
 数组的静态初始化是指初始化数组时指定数组元素值。
 只有在定义数组的同时执行数组初始化才支持使用简化的静态初始化。
 不能同时使用静态初始化和动态初始化，即不能即指定长度也分配初始值。
 
-使用foreach循环迭代访问数组元素时，并不能改变数组元素的值。
+使用foreach循环迭代访问数组元素时，并不能改变数组元素的值。其循环变量只是一个与数组元素值相同的临时变量，并不是数组元素本身。
 
-所有方法的局部变量（相当于指针）都保存在栈内存中，对象则保持在堆内存中。
+所有在方法中定义的局部变量（相当于指针）都保存在栈内存中，对象则保持在堆内存中。
+
+多维数组的维数层级是从左到右逐渐加深的，例如int[3][4]是一个长度为3的，元素类型为int[4]的数组，初始化多维数组时，可以只指定最左边维的长度，或者所有维的长度。
+
+常用的java.util.Arrays类的方法：
+
+- int binarySearch(type[] a, type key)
+- int binarySearch(type[]a, int fromIndex, int toIndex, type key)
+- type[] copyOf(type[] original, int length)
+- type[] copyOfRange(type[] original, int from, int to)
+- boolean equals(type[] a, type[] a2)
+- void fill(type[] a, type val)
+- void fill(type[] a, int fromIndex, int toIndex, type val)
+- void sort(type[] a)
+- void sort(type[] a, int fromIndex, int toIndex)
+- String toString(type[] a)
+- void parallePrefix(xxx[] array, XxxBinaryOperator op)
+- void parallePrefix(xxx[] array, int fromIndex, int toIndex, XxxBinaryOperator op)
+- void setAll(xxx[] array, IntToXxxFunction generator)
+- void paralleSetAll(xxx[] array, IntToXxxFunction generator)
+- void paralleSort(xxx[] a)
+- void paralleSort(xxx[] a, int fromIndex, int toIndex)
+- Spliterator.OfXxx spliterator(xxx[] array)
+- Spliterator.OfXxx spliterator(xxx[] array, int startInclusive, int endExclusive)
+- XxxStream stream(xxx[] array)
+- XxxStream stream(xxx[] array, int startInclusive, int endExclusive)
+
+
 
 ## Chapter 5 面向对象（上） ##
 
+在多个构造器中重复出现的初始化代码可以提取出来放在初始化代码块中，初始化代码块总是在构造器执行前被调用。
+
+		[修饰符] class 类名 {
+			[修饰符] 类名(构造器形参列表) {}
+			...
+			[修饰符] 类型 成员变量名 [= 默认值];
+			...
+			[修饰符] 返回值类型 方法名(形参列表) {}
+			...
+		}
+
+Java类名通则：每个单词首字母大写，其他字母小写，单词之间没有分隔符。
+
+static修饰的成员不能访问非static的成员。
+
+如果没有手工添加构造器，系统自动为该类提供一个默认的无参数构造器。
+
+成员变量名通则：第一个单词首字母小写，其余单词首字母大写，其他字母小写，单词间不使用间隔符。 
+
 变量存放在栈内存中，实际对象存放在堆内存中
 
-`this`所指代的的对象在编译期无法确定
+`this`所指代的的对象在编译期无法确定，只能确定类型。
 
-静态成员不能访问非静态成员。
+static修饰的方法中不能使用this引用，静态成员不能访问非静态成员。
 
 个数可变的形参可以代表0-n个参数，只能处于形参列表的最后，也就是说一个方法最多只能有一个个数可变的形参。个数可变的形参本质上是一个数组类型的形参，因此可以直接传入一个数组。
 
@@ -115,19 +230,31 @@ java中的标签只有放在循环语句之前才有作用。
 
 使用固定数量形参的方法总是会比使用可变个数形参的方法优先执行，因此不推荐重载形参个数可变的方法
 
-成员变量无需显示初始化，局部变量除了形参必须显示初始化。
-
-定义局部变量后，系统并未为这个变量分配内存空间，直到程序为这个变量赋初始值时，系统才会为其分配内存，并将初始值保存在这块内存中。局部变量保存在其所属方法的栈内存中。栈内存中的变量无需系统垃圾回收，随方法或代码块的运行结束而结束。
+成员变量无需显式初始化，局部变量除了形参必须显示初始化。
 
 一个类里不能有同名的成员变量；一个方法里不能有同名的方法局部变量和形参；一个代码块内不能有和已有方法局部变量同名的代码块局部变量；不同代码块内可以有重名的代码块局部变量；方法局部变量可以和成员变量重名
 
+实例变量实在创建实例时分配内存空间并指定初始值。
+
+定义局部变量后，系统并未为这个变量分配内存空间，直到程序为这个变量赋初始值时，系统才会为其分配内存，并将初始值保存在这块内存中。局部变量保存在其所属方法的栈内存中。栈内存中的变量无需系统垃圾回收，随方法或代码块的运行结束而结束。
+
+一下情况考虑使用成员变量：
+
+- 变量用于描述某个类或某个对象的固有信息；
+- 变量用于保存该类或者实例运行时状态信息；
+- 变量用于保存某个在多个方法之间共享的消息。
+
 外部类只能有2种访问控制级别：public和默认
+
+如果某个类主要用于做其他类的父类，该类包含的大部分方法可能仅希望被其子类重写，而不是被外界直接调用，此时应该使用protected修饰这些方法，在子类中重写这些方法并扩大权限至public
 
 如果一个java源文件里定义的所有类都没有使用public修饰，则这个java源文件可以是一切合法的文件名。
 
-带包的可执行类在执行时必须使用全路径，而不能人工进入包目录，直接使用类名执行。java在执行可执行类时，会在classpath指定路径下寻找包目录，然后在包目录中寻找该类。同一个包的类可以存储在不同的位置，但必须具备相同的与包结构对应的目录结构。
+带包的可执行类在执行时必须使用全路径，而不能人工进入包目录，直接使用类名执行。java在执行可执行类时，会在classpath指定路径下寻找包目录，然后在包目录中寻找该类。因此，同一个包的类的class文件可以存储在不同的位置，但必须具备相同的与包结构对应的目录结构并在classpath指定路径下。如果编译时不适用-d选项，编译器不会为class文件自动生成相应的文件结构。
 
 父包和子包在用法上不存在任何关系，如果父包中的类要是用子包中的类，必须使用子包的全名，不能省略父包部分。
+
+import static 和import 语句之间没有顺序要求。import可以省略包名，import static可以进一步省略类名。
 
 Java默认为所有源文件导入`java.lang`包下所有的类
 
@@ -137,7 +264,7 @@ Java默认为所有源文件导入`java.lang`包下所有的类
 
 java的子类不会继承（可以调用）父类的构造器。
 
-父类的private成员对子类也不可见。
+子类虽然继承了父类的private成员，但不可以直接访问，必须通过父类提供的public访问方法。
 
 方法的重写遵循两同两小一大：
 
@@ -147,14 +274,25 @@ java的子类不会继承（可以调用）父类的构造器。
 
 重写方法和被重写方法必须属于同种方法：类方法或者实例方法，否则编译错误。
 
+子类无法访问父类的private方法，因此也不能重写该方法，即使是完全相同的方法定义也只是相当于重新定义了一个新方法。
+
+系统查找变量的顺序：
+
+1. 首先查找当前方法中是否有同名的局部变量
+2. 然后查找当前类中是否有同名的成员变量
+3. 上一级父类中是否有同名的成员变量，迭代上溯直到找到该变量，如果找不到，编译出错。
+
 super和this关键字都不能出现在类方法中，也不会同时出现。因为都要求出现在第一行。
 
 子类的构造器一定会调用父类构造器一次：
 
 - 子类构造器第一行使用`super`关键字显式调用父类构造器
+- 子类构造器使用`this`显式调用其他没有使用`this`的构造器，参考下一条
 - 子类构造器没有显式调用父类构造器，也没有使用`this`关键字调用其他构造器，则隐式调用父类无参数的构造器
 
 **父类必须拥有一个无参数的构造器。**
+
+创建任何对象总是从该类所在继承树最顶层类的构造器开始执行，然后依次向下执行，最后才执行本类的构造器。如果某个类通过this调用了同类中重载的构造器，就会依次执行此类的多个构造器。
 
 当程序创建一个子类对象时，系统不仅会为该类中定义的实例变量分配内存，也会为它从父类继承得到的所有实例变量分配内存。当系统创建一个java对象时，如果该java类有两个父类（直接父类和间接父类），那么这个java对象保存着这三个类中定义的所有的实例变量。
 
@@ -166,7 +304,7 @@ super和this关键字都不能出现在类方法中，也不会同时出现。�
 
 通过引用变量访问他的实例变量，总是试图访问他编译时类型所定义的成员变量而不是运行时类型所定义的成员变量。
 
-类型转换时，两个类之间必须有继承关系，否则，运行时出现ClassCastException异常
+引用类型强制转换时，两个类之间必须有继承关系，否则，运行时出现ClassCastException异常
 
 instanceof运算符前面操作数的编译时类型要么与后面的类相同，要么与后面的类具有父子继承关系，才能运行，返回值是`true`或`false`，如果没有继承关系，则编译出错。
 
@@ -178,6 +316,10 @@ instanceof运算符前面操作数的编译时类型要么与后面的类相同�
 初始化块在创建java对象时依次执行并在执行构造器之前执行，只能被static修饰，
 
 当java创建一个对象时，系统先为该对象的所有实例变量分配内存（前提是该类已经被加载过了），接着程序开始对这些实例变量执行初始化：先执行初始化块或声明实例变量时指定的的初始值，再执行构造器里指定的初始值。
+
+当JVM第一次使用某个类时，系统会在类的准备阶段为该类的所有静态成员变量分配内存，在初始化阶段负责这些静态成员变量的初始化，也就是执行静态初始化块或者声明类变量时指定的初始值，执行顺序与在源代码中出现的顺序相同。
+
+出现在初始化块和静态初始化块的变量必须是在代码块外声明的变量，并且可以放在代码块后声明。因为执行初始化块时，已经创建了该变量并为其分配了内存空间，具体原因参考上面2段说明。
 
 静态初始化块和普通初始化块都会从顶级父类向下递归执行：
 
@@ -194,7 +336,7 @@ instanceof运算符前面操作数的编译时类型要么与后面的类相同�
 		本类无参数|带参数构造器
 		
 
-静态初始化块在类加载的初始化阶段执行，而不是在创建对象时才执行，因此比普通初始化块先执行。而且只能处理类变量，不能处理非静态的实例变量。
+静态初始化块在类加载的初始化阶段执行，而不是在创建对象时才执行，因此比普通初始化块先执行。而且只能访问静态成员，不能访问非静态的实例变量和实例方法。
 
 
 ## Chapter 6 面向对象（下） ##
@@ -202,13 +344,18 @@ instanceof运算符前面操作数的编译时类型要么与后面的类相同�
 把字符串类型的值转换为基本类型：
 
 - 包装类的parseXxx(String s)静态方法
-- 包装类的XXX(String s)构造器
+- 包装类的valueOf(String s)静态方法
+- 包装类的Xxx(String s)构造器
 
 把基本类型转换为字符串类型：
 
-- String类的value()方法
+- String类的valueOf()方法
+- 与空字符串""连接
 
--128~127之间的同一个整数自动装箱成Integer实例时，永远都是引用cache数组里的同一个数组元素，所以他们全部相等，但每次把一个在此范围之外的整数自动装箱成Integer实例时，系统总是重新创建一个Integer实例，所以同一整数生成的Integer实例可能并不是同一对象。
+包装类变量与基本类型变量的比较是直接比较值；
+包装类变量之间的比较是比较两者是否指向同一个包装类对象
+
+-128~127之间的同一个整数自动装箱成Integer实例时，永远都是引用cache数组里的同一个数组元素，所以他们全部相等，但每次把一个在此范围之外的整数自动装箱成Integer实例时，系统总是重新创建一个Integer实例，所以同一整数生成的Integer实例并不是同一对象。
 
 重写`toString()`方法的一般格式：
 
@@ -276,6 +423,11 @@ Singleton代码示例：
 
 final修饰的成员变量必须由程序员显示指定初始值。final类变量在初始化类时已经被指定初始值，所以不能在普通初始化块中重新赋值。
 
+- final修饰的类变量必须在声明该变量时指定初始值或在静态初始化块中指定初始值，二者只能选其一
+- final修饰的实例变量必须在声明该实例变量或构造器中，或非静态初始化块中指定初始值，三者只能选其一
+
+final成员变量在显式初始化之前不能直接访问，但可以通过方法来访问，此时该成员变量会被系统自动赋予默认值。
+
 final修饰的局部变量可以不在声明时赋值，但在之后必须且只能被赋值一次。
 
 final变量在满足以下条件时相当于一个直接量：
@@ -287,6 +439,8 @@ final变量在满足以下条件时相当于一个直接量：
 编译器会把程序中所有用到该变量的地方直接替换成该变量的值。如果被赋的是基本的算术表达式或字符串连接，没有访问任何普通变量，调用方法，编译器同样会把这种final变量作为直接量(宏变量)处理。
 
 final实例变量只有在定义时就指定初始值才会有宏变量效果。
+
+final方法不能被子类重写；但由于子类不会重写父类的private方法，因此父类的private方法即使用final修饰，在子类中仍然可以看到与其完全相同的子类方法，但这不是重写，而算是一个只属于子类的新方法。
 
 创建自定义的不可变类规则：
 
@@ -302,7 +456,7 @@ final实例变量只有在定义时就指定初始值才会有宏变量效果。
 - 创建`valueOf()`方法，用于创建未生成实例并加入数组或从数组中取出已生成实例
 - 根据需要，重写`equals()`和`hashCode`方法
 
-
+通过new创建对象不会启用缓存
 
 抽象类即使不包含抽象方法也不能用于创建实例。
 
@@ -310,21 +464,33 @@ final实例变量只有在定义时就指定初始值才会有宏变量效果。
 
 抽象类必须包含一个不带参数的构造器，否则无法被继承。
 
-final和abstract永远不能同时使用；abstract不能用于修饰变量，也不能用于修饰构造器；static和abstract不能同时修饰同一个方法，但可以同时修饰内部类；private和abstract不能同时修饰同一个方法；
+final和abstract永远不能同时使用；
+abstract不能用于修饰变量，也不能用于修饰构造器；
+static和abstract不能同时修饰同一个方法，但可以同时修饰内部类；
+private和abstract不能同时修饰同一个方法
 
-接口不能包含构造器和初始化块，可以包含成员变量（只能是静态常量），方法（只能是抽象实例方法，类方法或默认方法），内部类（包括内部接口和枚举）。
+接口定义的是多个类共同的公共行为规范，通常是定义一组公用方法。
 
+Java9允许在接口中定义默认方法，类方法和私有方法，都可以提供方法实现。
+
+接口不能包含构造器和初始化块，可以包含成员变量（只能是静态常量），方法（只能是抽象实例方法，类方法或默认方法，私有方法(Java9)），内部类（包括内部接口和枚举）。
 
 - 接口里的所有成员，包括常量，方法，内部类和内部枚举都是public访问权限。
 - 接口里的常量总是用public static final修饰的（也是默认修饰符），因为接口中没有构造器和初始化块，所以只能在定义时赋值。
-- 接口中的普通方法总是使用public abstract来修饰，不能有方法体。类方法和默认方法都必须有方法体。
+- 接口的私有方法主要作用是作为工具方法为默认方法和类方法提供支持，不能用default修饰，可以用static修饰
+- 接口中的普通方法总是使用public abstract来修饰，不能有方法体。类方法，默认方法和私有方法都必须有方法体。
 - 接口里定义的内部类，内部接口，内部枚举默认都采用public static来修饰。
-- 接口的默认方法必须是用default修饰，不能使用static修饰，而且总是public的，可以有多个默认方法。
+- 接口的默认方法必须是用default修饰，不能使用static修饰，而且总是public的，可以有多个默认方法。实际上就是实例方法。
 - 接口的类方法必须使用static修饰，不能用default，而且总是public的
+
+接口支持多继承；可以实现多个接口，implements必须房子extends的后面。
+如果继承的多个父接口有相同的默认方法，子接口必须重写该默认方法。
+
+接口不能显式继承任何类，但所有接口类型的变量可以直接赋给Object类型的变量。
 
 接口和抽象类的区别
 
-- 接口只能包含抽象方法，静态方法和默认方法，不能为普通方法提供实现；抽象类则可以包含普通方法
+- 接口只能包含抽象方法，静态方法，默认方法和私有方法，不能为普通方法提供实现；抽象类则可以包含普通方法
 - 接口里只能定义静态常量，不能定义普通成员变量，抽象类则都可以
 - 接口不包含构造器，抽象类可以
 - 饥渴不包含初始化块，抽象类可以
@@ -338,7 +504,6 @@ final和abstract永远不能同时使用；abstract不能用于修饰变量，�
 
 当在非静态内部类的方法内访问某个变量时，寻找顺序如下：
 
-
 1. 系统优先在该方法内查找是否存在该名字的局部变量
 2. 该方法所在内部类是否有该名字的成员变量
 3. 该内部类所在的外部类是否有该名字的成员变量
@@ -350,7 +515,7 @@ final和abstract永远不能同时使用；abstract不能用于修饰变量，�
 
 外部类的静态成员不能直接使用非静态内部类。
 
-非静态内部类里不能有静态成员，包含静态变量，静态初始化块和静态方法。
+非静态内部类里不能有静态成员，包含静态变量，静态初始化块和静态方法。但可以包含普通初始化块。
 
 静态内部类可以包含静态成员，也可以包含非静态成员。但在其内部只能访问外部类的静态成员，不能访问实例成员。
 
@@ -371,8 +536,15 @@ final和abstract永远不能同时使用；abstract不能用于修饰变量，�
 内部类的使用：
 
 1. 外部类内可以直接使用，与其他普通类没有区别
-2. 在外部类以外使用非静态内部类：必须先创建外部类的对象，再通过该对象创建其内部类对象，即非静态内部类对象必须依附于某一个其所在外部类的对象。非静态内部类的子类的对象也必须依附于某一个其父类所在外部类的对象。
+2. 在外部类以外使用非静态内部类：必须先创建外部类的对象，再通过该对象创建其内部类对象，即非静态内部类对象必须依附于某一个其所在外部类的对象。非静态内部类的子类的对象也必须依附于某一个其父类所在外部类的对象。非静态内部类的构造器必须通过外部类对象来调用。非静态内部类的子类的构造器必须有一个形参指向其父类所在外部类的对象。
+
+		OuterClass.InnerClass var = OuterInstance.new InnerConstructor();
+
 3. 在外部类以外使用内部静态类：通过外部类名.内部类名来使用，类似于包空间
+
+使用内部类时，应该优先考虑使用静态内部类。子类无法覆盖父类的内部类，因为内部类的完整类名也包含外部类的类名。
+
+所有局部成员都不能使用访问控制符修饰。
 
 局部内部类的class文件比成员内部类的class文件多了一个数字
 
@@ -386,11 +558,14 @@ final和abstract永远不能同时使用；abstract不能用于修饰变量，�
 - 是抽象类
 - 包含构造器
 
+匿名内部类必须实现它的抽象父类或者接口里包含的所有抽象方法。也可以重写父类中的普通方法。
+
 被匿名内部类访问的局部变量必须是final（系统会自动限制-effectively final）
 
-当Lambda表达式需要返回值，而他的代码块仅有一条省略了return的语句，Lambda会自动返回该语句的值
+当Lambda表达式需要返回值，而他的代码块仅有一条省略了return的语句，Lambda会自动返回该语句的值;
+Lambada表达式的参数还是形参。
 
-函数式接口：只有一个抽象方法的接口（可以含有类方法和默认方法）。
+函数式接口：只有一个抽象方法的接口（可以含有类方法和默认方法）。可以包含多个默认方法，类方法，但只能声明一个抽象方法。
 
 Lambda表达式的目标类型必须是明确的函数式接口。
 
@@ -400,7 +575,7 @@ Java8，`java.util.function`中常见的函数式接口：
 - XxxPredicate：通常包含一个`test()`方法，对参数进行判断，然后返回一个boolean值
 - XxxSupplier：通常包含一个`getAsXxx()`方法，不需要输入参数，会按实现的逻辑算法返回一个数据
 
-如果Lambda表达式的代码块只有一条代码，还可以在代码块中使用方法引用和构造器引用：p216 表6.2
+如果Lambda表达式的代码块只有一条代码，还可以在代码块中使用方法（这里的方法指的不是函数式接口的抽象方法，而是在实现该抽象方法时所调用的具有方法体的其他类的类方法或实例方法）引用和构造器引用：p216 表6.2
 
 - 类名::类方法
 (a, b, ...) -> 类名.类方法(a, b, ...)
@@ -421,45 +596,118 @@ lambda表达式和匿名内部类的相同点：
 
 - 匿名内部类可以为任意接口创建实例，lambda只能为函数式接口服务
 - 匿名内部类可以为抽象类甚至普通类创建实例，lambda只能为函数式接口服务
-- 匿名内部类实现的抽象方法的方法体允许调用接口中定义的默认方法，lambda表达式的代码块则不允许调用
+- 匿名内部类实现的抽象方法的方法体允许调用接口中定义的默认方法，lambda表达式的代码块则不允许调用。注意与上一段中不同的地方在于，上一段指的是使用lambda创建的对象，这里指的是Lambda本身的代码块。
 
 
 枚举类
 
-- 使用enum定义的枚举类默认继承了java.lang.Enum类，因此不能显式继承其他父类；
+- 使用enum定义的枚举类默认继承了java.lang.Enum类，因此不能显式继承其他父类，Enum类实现了Serializable和Comparable接口；
 - 非抽象的枚举类默认使用final修饰，因此不能派生子类
 - 枚举类的构造器只能使用private访问控制符
 - 枚举类的所有实例必须在枚举类的第一行显式列出，以,分开，;结束，且总是public static final。
 
 当switch控制表达式使用枚举类型时，case表达式中的值可以直接使用枚举值，无需添加枚举类作为限定。
 
-枚举类通常应该设计为不可变类，因此建议将枚举类的成员变量都使用private final修饰，并在构造器里为这些final成员变量赋值，也就是说必须显式定义带参数的构造器。
+枚举类通常应该设计为不可变类，因此建议将枚举类的成员变量都使用private final修饰，并在构造器里为这些final成员变量赋值，也就是说必须显式定义带参数的构造器。一旦定义了带参数的构造器，在枚举类中第一行列出所有枚举值时就必须使用该构造器为每个枚举值传入实际参数值。
 
-实现了接口的枚举类可以为每个枚举值提供不同的抽象方法实现。拥有抽象方法的枚举类可以衍生子类，每个实现了抽象方法的枚举值都是他的匿名子类
+非抽象的枚举类才默认使用final修饰，而实现了接口，拥有抽象方法的枚举类就是抽象枚举类型，默认使用abstract修饰，可以衍生子类，从而为每个枚举值提供不同的抽象方法实现，每个实现了抽象方法的枚举值都是他的匿名子类的实例。
 
-包含抽象方法的枚举类也不能显式使用abstract修饰，但是定义每一个枚举值时要为抽象方法提供实现，否则出现编译错误。
+包含抽象方法的枚举类不能显式使用abstract修饰（已经默认是abstract），但是定义每一个枚举值时要为抽象方法提供实现，否则出现编译错误。
+
+枚举类型中出现抽象方法的原因：
+
+- 实现了接口：
+	- 可以在枚举类中直接实现接口的抽象方法，此时所有的枚举值共享该实现方法；
+	- 也可以在列举每个枚举值时加入代码块单独实现该抽象方法，此时每个枚举值相当于该枚举类的一个匿名子类的实例。每个枚举值拥有不同的实现方法。
+- 枚举类自带抽象方法：列出每个枚举值时必须单独提供该抽象方法的实现。
 
 垃圾回收机制只负责回收堆内存中的对象，不负责回收物理资源；在回收任何对象之前，都会调用它的`finalize()`方法。
+
+对象在内存中的状态：
+
+- 可达状态：有指向该对象的引用
+- 可恢复状态：没有指向该对象的引用，但还没允许该对象的finalize()方法
+- 不可达状态：运行了该对象的finalize()方法后，仍没有指向该对象的引用。
 
 可以调用以下方法来督促系统进行垃圾回收：
 - `System`类的静态方法`System.gc()`
 - `Runtime`对象的`gc()`实例方法：`Runtime.getRuntime().gc()`
 
+永远不要主动调用某个对象的finalize()方法；
 当jvm执行finalize()方法出现异常时，垃圾回收机制不会报告异常，程序继续执行
+
+不要使用finalize()方法清理某个类打开的资源，因为不能确定finalize()是否会被执行。
+
+对象的引用：
+
+强引用(StrongReference) ：通常的赋值都是强引用
+软引用(SoftReference)   ：使用SoftReference类实现，内存不足时，才会回收只有软引用指向的对象
+弱引用(WeakReference)   ：使用WeakReference类实现，内存足不足都会回收只有弱引用指向的对象
+虚引用(PhantomReference)：使用PhantomReference类实现，不能单独使用（构造时必须指定一个引用队列），主要用于和引用队列配合跟踪对象被垃圾回收的状态。系统无法通过虚引用获得指向的对象。
+
+引用队列使用java.lang.ref.ReferenceQueue类表示，用于保存已经被回收对象的引用。
+对于软引用，弱引用，其引用的对象被回收后，会把所对应的引用添加到关联的引用队列中；
+虚引用则是在对象被回收之前，将指向他的虚引用添加到关联的引用队列中。
+
+使用弱引用和软引用可以节省内存空间，但相应会增加重新创建对象的损耗。
+
+		//取出弱引用指向的对象
+		obj = weakReference.get();
+		//如果取出的对象为空
+		if (obj == null) {
+			//重新创建对象并使用强引用指向他
+			obj = recreateObj();
+			//将弱引用指向新建立的对象
+			wr = new WeakReference(obj);
+		}
+		//操作obj对象
+		...
+		//切断obj和对象之间的关联
+		obj = null;
 
 p233 表6.3 Java修饰符适用范围总表
 
-abstract和final永远不能同时使用；abstract和static不能同时修饰方法，但可以同时修饰内部类；abstract和private不能同时修饰方法，可以同时修饰内部类；private和final可以混用但没有意义。
+abstract和final永远不能同时使用；
+abstract和static不能同时修饰方法，但可以同时修饰内部类；
+abstract和private不能同时修饰方法，可以同时修饰内部类；
+private和final可以混用但没有意义。
 
-
+解压缩jar文件时不能使用jar的-C选项来指定解压的目标目录，因为-C选项只能在创建或更新jar时才能使用。
 
 ## Chapter 7 java基础类库 ##
 
-为Scanner设置分隔符使用useDelimiter(String pattern)
+Scanner是一个基于正则表达式的文本扫描器，可以从文件，输入流，字符串中解析出基本类型值和字符串值。不同的构造器使用不同类型的参数作为数据源。使用空白（包含空格，Tab空白，回车）作为分隔符。为Scanner设置分隔符使用useDelimiter(String pattern)。 主要使用以下4个方法扫描输入：
+
+- boolean hasNextXxx()
+- boolean hasNextLine()
+- Xxx nextXxx()
+- String nextLine()
+
+has方法的阻塞和next方法的阻塞无关
+
+System类代表当前Java程序的运行平台
 
 通过identityHashCode(Object x)可以获得对象的identityHashCode值，这个特殊的identityHashCode值可以唯一地标识对象。默认情况下Object类的hashCode()方法得到的就是identityHashCode。
 
-Object类的clone()方法只是一种浅克隆，只克隆该对象的所有成员变量值，不会对引用类型的成员变量值所引用的对象进行克隆。
+RunTime类代表Java程序的运行时环境，每个Java程序都有一个与之对应的RunTime实例，应用程序通过该对象与其运行时环境相连。
+
+Object类常用方法：
+
+- boolean equals(Object obj)
+- protected void finalize()
+- Class<?> getClass()
+- int hashCode()
+- String toString()
+
+自定义类实现“克隆”的方法：
+
+1. 自定义类实现Cloneable接口
+2. 自定义类实现自己的clone()方法
+3. 实现clone()方法时调用super.clone()实现浅克隆
+
+Object类的clone()方法只是一种浅克隆，只克隆该对象的所有成员变量值，不会对引用类型的成员变量值所引用的对象进行克隆。也就是说只克隆了引用，没有创建新对象。
+
+Ojbects类的toString(Object obj)方法，不会因传入的参数为null而引发NullPointerException异常，而是会返回一个"null"字符串。
 
 Objects类的requireNonNull()方法，当传入的参数不为null时，返回参数，否则引发NullPointerException异常。用于对方法形参进行输入校验。
 
@@ -467,8 +715,49 @@ Objects类的`hashCode(Object obj)`返回的hashcode值和`obj.hashcode()`返回
 
 Objects类的`requireNonNull(Object obj, Supplier<String> messageSupplier)`比`requireNonNull(Object obj, String message)`效率要高
 
+String类时不可变类，一旦一个String对象被创建，包含在其中的字符序列是不可改变的；
+StringBuffer代表一个字符序列可变的字符串，一旦通过StringBuffer生成了最终想要的字符串，就可以调用它的toString()方法将其转换为一个String对象。
 
 StringBuilder和StringBuffer的用法完全，只是StringBuffer是线程安全的。两者都实现了`CharSequence`接口，这个接口可以作为字符串的协议接口
+
+Java9改进了字符串的实现，包括String，StringBuffer，StringBuilder。
+Java9以前字符串采用char[]数组保存字符，因此每个字符占2个字节，Java9的字符串采用byte[]数组再加一个encoding-flag字段保存字符。使用方法不受影响。
+
+String类常用方法：
+
+- char charAt(int index)
+- int compareTo(String anotherString)：
+	- 如果两个字符串的字符序列相等，则返回0，不相同时，从两个字符串第0个字符开始比较，返回第一个不相等的字符差（调用者-被调用者）；
+	- 另一种情况，较长字符的前面部分恰巧是较短的字符串，则返回他们的长度差。
+- String concat(String str)
+- boolean contenEquals(StringBuffer sb)
+- static String copyValueOf(char[] data)
+- static String copyValueOf(char[] data, int offset, int count)
+- boolean endsWith(String suffix)
+- boolean equals(Object anObject)
+- boolean equalsIgnoreCase(String str)
+- byte[] getBytes()
+- void getChars(int srcBegin, int srcEnd, char[] dst, int dstBegin)
+- int indexOf(int ch)
+- int indexOf(int ch, int fromIndex)
+- int indexOf(String str)
+- int indexOf(String str, int fromIndex)
+- int lastIndexOf(int ch)
+- int lastIndexOf(int ch, int fromIndex)
+- int lastIndexOf(String str)
+- int lastIndexOf(String str, int fromIndex)
+- int length()
+- String replace(char oldChar, char newChar)：替换第一个oldChar
+- boolean startsWith(String prefix)
+- boolean startsWith(String prefix, int toffset)
+- String substring(int beginIndex)
+- String substring(int beginIndex, int endIndex)
+- char[] toCharArray()
+- String toLowerCase()
+- String toUpperCase()
+- static String valueOf(Xxx xxx)
+
+StringBuffer和StringBuilder的length属性表示所包含的字符序列的长度，capacity表示容量，通常容量比长度大。
 
 使用StringBuilder和StringBuffer的`reverse()`方法时，(high-low)的surrogate对不会翻转，作为一个字符处理，而(low-high)的surrogate对会翻转，成为一个新的字符。
 
@@ -478,6 +767,8 @@ StringBuilder和StringBuffer的用法完全，只是StringBuffer是线程安全�
 - `this.length() - str.length()`：如果2个字符串没有不同字符，但长度不同。
 
 `Math.round(double)`方法返回`long`，而不是`double`
+
+ThreadLocalRandom类是Random类的增强版，可以减少多线程资源竞争。
 
 使用默认种子构造Random对象时，属于同一个种子。
 
@@ -491,6 +782,8 @@ StringBuilder和StringBuffer的用法完全，只是StringBuffer是线程安全�
 
 `BigDecimal`的对象时不可变的，因此使用`setScale()`系列方法不会改变修改原对象，会返回一个具有新标度的对象，这个对象可能不是新创建的。
 
+Calendar类本身是一个抽象类，是所有日历类的模板，并提供了一些所有日历通用的方法，本身不能实例化。Calendar.MONTH字段代表月份，起始值不是1，而是0
+
 Calendar类的add,roll,set方法区别
 
 - add()与set()方法类似，当修改的字段超出允许范围，会发生进位，如果下一级字段也需要修改，该字段会修正到变化最小的值
@@ -499,7 +792,25 @@ Calendar类的add,roll,set方法区别
 Calendar类有2种模式：
 
 - lenient模式：允许字段超出允许范围，做进位处理
-- non-lenient模式：不允许字段超出范围，否则抛出异常
+- non-lenient模式：不允许字段超出范围，否则抛出异常，可以用于严格的参数检查。
+
+通过Calendar类set(f, value)方法将日历字段f更改为value，尽管f的值是立即更改的，但Calendar所代表的时间只会在下次调用get(), getTime(), getTimeInMillis(), add(), roll()方法时才会使用f的新值重新计算日历的时间。
+
+Java8新增的日期，时间包：
+
+- Clock
+- Duration
+- Instant
+- LocalDate
+- LocalTime
+- LocalDateTime
+- MonthDay
+- Year
+- YearMonth
+- ZonedDateTime
+- ZoneId
+- DayOfWeek
+- Month
 
 典型的正则表达式的使用：
 
@@ -507,14 +818,43 @@ Calendar类有2种模式：
 		Matcher m = p.matcher("aaaaabb");
 		boolean b = m.matches();
 
-java的国际化：
+String类里使用正则表达式的方法：
+
+- boolean matches(String regex)
+- String replaceAll(String regex, String replacement)
+- String replaceFirst(String regex, String replacement)
+- String[] split(String regex)
+
+如果某个正则表达式仅需一次使用，则可直接使用Pattern类的静态matches()方法，此方法自动把指定字符串编译成匿名的Pattern对象。
+
+Pattern类是不可变类，可供多个并发线程安全使用。
+
+Matcher类常用方法：
+
+- find()：返回目标字符串中是否包含与Pattern匹配的子串
+- group()：返回上一次与Pattern匹配的子串
+- start()：返回上一次与Pattern匹配的子串在目标字符串中的开始位置
+- end()：返回上一次与Pattern匹配的子串在目标字符串中的结束位置+1
+- lookingAt()：返回目标字符串前面部分与Pattern是否相配
+- matches()：返回整个目标字符串与Pattern是否相配
+- reset()：将现有Matcher对象应用于一个新的字符序列
+
+MethodHandle和VarHandle用于动态调用和处理方法和变量。通过MethodHandles工具类的静态方法和内部工厂类来生成相应的实例。VarHandle主要用于动态操作数组的元素或对象的成员变量。
+
+java的国际化涉及的类：
+
+- java.util.ResourceBundle：用于加载国家，语言资源包
+- java.util.Locale：用于封装特定的国家，区域的语言环境
+- java.text.MessageFormat：用于格式化带占位符的字符串
+
+国际化步骤：
 
 1. 准备basename.properties，basename_language.properties或basename_language_country.properties文件。其中language和country必须使用java的Locale中的language和country。
-2. 使用native2ascii工具转换包含非西欧字符的资源文件
+2. Java9已可直接使用UTF-8字符集的属性文件，Java8及以前必须使用native2ascii工具转换包含非西欧字符的资源文件
 
 		native2ascii basename.properties basename_language_country.properties
 
-3. 使用以下类似代码从相应资源文件中取得所需语音文字：
+3. 使用以下类似代码从相应资源文件中取得所需语言文字：
 
 		public class Hello {
 			public static void main(String[] args) {
@@ -523,6 +863,52 @@ java的国际化：
 				System.out.println(bundle.getString("hello"));
 			}
 		}
+
+属性文件必须显示保存为UTF-8字符集
+
+带占位符的字符串可以使用MessageFormat的format(String pattern, Object... values)来用后面的多个参数值填充前面的pattern字符串，其中pattern字符串不是一个正则表达式，而是一个带占位符的字符串。 
+
+ResourceBundle搜索资源的顺序：
+
+1. basename_zh_CN.class
+2. baseName_zh_CN.properties
+3. basename_zh.class
+4. baseName_zh.properties
+5. basename.class
+6. baseName.properties
+
+NumberFormat和DateFormat都包含
+
+- format()：把数值和日期格式化为字符串
+- parse()：把字符串解析成数值或日期
+
+NumberFormat是个抽象基类，使用类方法获得NumberFormat对象：
+
+- getCurrenyInstance()
+- getIntegerInstance()
+- getNumberInstance()
+- getPercentInstance()
+
+DateFormat也是一个抽象基类，常用方法：
+
+- getDateInstance()
+- getTimeInstance()
+- getDateTimeInstance()
+
+DateFormat对象可以调用setLenient(boolean lenient)方法设置是否采取严格语法。DateFormat的parse()方法要求被解析的字符串必须符合日期字符串的要求，否则可能抛出ParseException异常。
+
+Java8新增了DateTimeFormatter类，通常使用下面三种方法获取该类的实例：
+
+- 直接引用该类的静态常量作为DateTimeFormatter格式器
+- 使用代表不同风格的枚举值来创建DateTimeFormatter
+- 使用模式字符串来创建DateTimeFormatter
+
+使用DateTimeFormatter将日期时间格式化为字符串的方法：
+
+- 调用DateTimeFormatter的format(TemporalAccessor temporal)方法执行格式化，LocalDate，LocalTime，LocalDateTime等都是TemporalAccessor接口的实现类
+- 调用LocalDate, LocalTime, LocalDateTime等类的对象的format(DateTimeFormatter formatter)方法执行格式化
+
+可通过日期事件对象的parse(CharSequence text, DateTimeFormatter formatter)方法使用DateTimeFormatter将字符串解析成日期时间对象
 
 ## Chapter 8 Java集合 ##
 
@@ -579,14 +965,14 @@ HashSet判断两个元素相等的标准是他们的hashCode相等且equals()返
 - 两个对象使用equals()方法对比的结果应该和他们的hashCode对比结果相同
 - 所有用于equals比较标准的实例变量也应该用于计算hashCode
 
-实例变量类型						|计算方式
---------------------------------|-------
-boolean							|f?0:1
-整数类型(byte, short, char, int)	|(int)f
-long							|(int)(f^(f>>>32))
-float							|Float.floatToIntBits(f)
-double							|long l = Double.doubleToLongBits(f); (int)(l^(l>>>32))
-引用类型							|f.hashCode()
+实例变量类型                     | 计算方式
+-------------------------------- | -------
+boolean                          | f?0:1
+整数类型(byte, short, char, int) | (int)f
+long                             | (int)(f^(f>>>32))
+float                            | Float.floatToIntBits(f)
+double                           | long l = Double.doubleToLongBits(f); (int)(l^(l>>>32))
+引用类型                         | f.hashCode()
 
 常用计算hashcode值的方法：
 
@@ -594,6 +980,8 @@ double							|long l = Double.doubleToLongBits(f); (int)(l^(l>>>32))
 2. 把每个相关实例变量的hashcode值与一个质数相乘再相加得到最终的hashcode值
 
 在把对象加入到HashSet后，尽量不要修改影响equals和hashCode的实例变量的值，否则会引起HashSet混乱
+
+LinkedHashSet集合里的元素按照添加顺序排列，但依然不允许集合元素重复
 
 加入TreeSet的类必须实现Comparable接口，而且必须是同一个类的对象，否则抛出ClassCastException异常
 
@@ -607,13 +995,19 @@ EnumSet不允许添加null元素，会抛出NullPointerException异常。但查�
 
 EnumSet是所有Set类中性能最好的，但只能保存同一个枚举类的枚举值作为集合元素。
 
+当试图复制一个Collection集合里的元素来创建EnumSet集合时，必须保证Collection集合里的所有元素都是同一个枚举类型的枚举值。
+
 HashSet，TreeSet和EnumSet都是线程不安全的，如果需要保证Set集合的同步性，可以再创建Set时使用Collections的synchronizedSortedSet方法包装该集合。
 
 		SortedSet set = Collections.synchronizedSortedSet(new TreeSet(...));
 
-List判断两个对象相等只需equals()返回true即可。
+List判断两个对象相等只需equals()返回true即可。而且调用的是用于判断是否被包含的对象的equals方法，而不是list中元素的equals方法。
 
 List的set(int index, Object element)的index必须是List的有效索引。
+
+ArrayList和Vector类都是基于数组实现的List类，其内部数组的默认是10，可以使用void ensureCapacity(int minCapacity)方法来调整数组的长度，也可以使用void trimToSize()方法来缩减数组长度至实际包含元素的个数
+
+不推荐使用Vector类以及其子类Stack，可以使用ArrayDeque来实现栈结构。
 
 Arrays类的asList(Object... a)方法生成的List集合是Arrays类内部类ArrayList的实例，程序只能遍历访问该集合里的元素，不能增加或删除内容。
 
@@ -621,14 +1015,18 @@ Queue接口定义的方法：
 
 - 加入元素到队尾
 	- void add(Object e) 队列若满则抛出异常
-	- boolean offer(Object e) 队列若满则返回false，通常比add更好
+	- boolean offer(Object e) 队列若满则返回false，当使用有容量限制的队列时，通常比add更好
 - 获取队列头部的元素
 	- Object element() 获取但不删除，为空则抛出异常
 	- Object peek() 获取但不删除，为空则返回null
 	- Object poll() 获取并删除，为空则返回null
 	- Object remove() 获取并删除，为空则抛出异常
 
-PriorityQueue类不允许插入null元素，还需要对队列元素进行排序，因此显示顺序可能不同于提出数据的顺序。
+PriorityQueue类不允许插入null元素，还需要对队列元素进行排序，排序的方法可参考TreeSet的自然排序和定制排序。PriorityQueue的显示顺序可能不同于数据存入以及提出数据的顺序，即其显示顺序可能既不是存入的顺序，也可不能不是排列后的顺序。
+
+ArrayList和ArrayDeque两个集合类的实现机制基本相似，都是采用一个动态的，可重新分配的Object[]数组来存储集合元素，当集合元素超出了该数组的容量时，系统会在底层重新分配一个Object[]数组，并把原来数组里的内容拷贝过去。
+
+对于所有内部基于数组的集合实现，如ArrayList，ArrayDeque等，使用随机访问的性能比使用Iterator迭代访问的性能要好。
 
 使用List的建议：
 
@@ -636,47 +1034,126 @@ PriorityQueue类不允许插入null元素，还需要对队列元素进行排序
 - 如果需要经常插入，删除包含大量数据的的List集合的大小，可考虑使用LinkedList集合
 - 如果需要保证同步性，需要用Collections工具类包装
 
+Map的key和value可以是任何引用类型的数据，key不允许重复，通过equals()方法返回的总是true。
+
+如果把Map里的key放在一起，就组成了一个Set集合。Map的实现类和子接口中key集的存储形式和对应Set集合中元素的存储形式完全相同。Java实际上是先实现了Map，然后通过包装一个所有value都是null的Map实现了Set。
+
+把Map里的value放在一起，就类似一个List。
+
+Map的Object put(Object key, Object value)方法返回的时被覆盖的value值或是null。
+
+Map中还包括一个内部类Entry，该类封装了一个key-value对。
+
+HashMap和Hashtable的区别：
+
+- Hashtable是线程安全的，而HashMap不是
+- Hashtable不能使用null作为key和value，会引发NullPointerException异常，而HashMap可以，但最多只能有一个key是null
+
 HashMap，Hashtable判断两个value相等的标准是两个对象通过equals()方法比较返回true即可。
+
+与HashSet一样，HashMap和Hashtable也不能保证其中的key-value对的顺序
+ 
 如果使用自定义类作为HashMap,Hashtable的key，必须重写该类的equals()方法和hashCode()方法以获得一致的判断结果。
 
 如果使用自定义类作为TreeMap的key，必须重写该类的equals()方法和compareTo()方法以获得一致的返回结果。
 
+LinkedHashMap使用双向链表来维护key-value对，使其顺序与插入顺序一致
+
+Properties相当于一个key和value都是String类型的Map，有get和set属性的方法，也有读取和存储属性文件的方法
+
 在IdentityHashMap中，当且仅当两个key严格相等（key1 == key2）时，IdentityHashMap才认为两个key相等，对于普通的HashMap，只要key1和key2通过equals()方法比较返回true，且它们的hashCode值相等即可。
+
+IdentityHashMap也可以使用null作为key和value，但也不保证key-value对的顺序
+
+TreeMap和TreeSet一样也有两种排序方式：
+
+- 自然排序：所有key必须是同一个实现了Comparable接口的类，否则会出现ClassCastException异常
+- 定制排序：创建TreeMap时传入一个Comparator对象，负责对所有的key进行排序，此时不要求key实现Comparable接口
+
+WeakHashMap和HashMap的区别：
+
+- HashMap的key使用的是对象的强引用，此时对象是不会被回收的
+- WeakHashMap的key使用的是对象的弱引用，对象是可以被系统回收的，此时WeakHashMap也会自动删除该key所对应的key-value对
 
 当TreeMap被填充后，可以调用keySet()，取得由key组成的set，然后使用toArray()方法生成key的数组，在使用Arrays的binarySearch()方法在已排序的数组中快速地查询对象。
 
+EnumMap的特点：
+
+- 内部以数组形式存储
+- 根据key的自然顺序，也就是枚举值在枚举类中的定义顺序来维护key-value对的顺序
+- 不允许使用null作为key，但可以作为value使用
+
+HashMap和Hashtable的hash表都包含如下属性：
+
+- 容量(capacity)：hash表中桶(bucket)的数量
+- 初始化容量(initial capacity)：创建hash表时桶的数量，在构造器中指定初始化容量大小
+- 尺寸(size)：当前hash表中记录的数量
+- 负载因子(load factor)：等于size/capacity，可以理解为当前hash表的使用率，0~1
+- 负载极限：等于(prefered max size)/capacity，0~1，默认0.75，当负载因子大于极限时，自动创建一个2倍容量的新hash表，并把原hash表的内容放入到新的hash表中
+
+使用Collections类的synchronizedXxx()方法将指定的集合包装成线程同步的集合
+
+使用Collections类的emptyXxx(), singletonXxx(), unmodifiableXxx()方法创建集合的只读版本
+
+在java9中可以直接调用Set，List，Map的of()方法创建包含N个元素的不可变集合。不可变集合中既不能添加新元素，也不能删除元素
+
+创建不可变的Map集合有两种方法：
+
+- 使用of()方法依次传入多个key-value对
+- 使用ofEntries()方法传入多个Map.Entry对象
 
 ## Chapter 9 泛型 ##
-调用方法时必须为所有的数据形参传入参数值，与调用方法不同，使用类，接口时也可以不为类型形参传入实际的类型参数。编译器会发出警告，并自动把类型参数设置为Object
+Java9中允许在创建匿名内部类时使用菱形语法，系统会根据上下文推断内部类中泛型的类型
+
+泛型：就是在定义类，接口和方法时使用类型参数，这个类型形参将在声明变量，创建对象，调用方法时根据传入的实际类型参数，即类型实参来动态地指定所使用的实际类型。相当于生成了逻辑上的子类，但该子类在物理上并不存在
+
+当实现使用泛型的接口，或者继承使用泛型的类时，不能在接口和父类名中使用类型形参，必须指定实际类型参数或者不传入任何类型参数
+
+调用方法时必须为所有的数据形参传入参数值，与调用方法不同，使用类，接口时也可以不为类型形参传入实际的类型参数。编译器会发出警告，并自动把类型参数设置为Object，这种省略了泛型的形式称为原始类型(raw type)
 
 不存在泛型类：不管为泛型的类型形参传入哪一种类型实参，java都会将他们作为同一个类处理，在内存中也只占用一块内存空间，因此在静态方法，静态初始化或者静态变量的声明和初始化中不允许使用类型参数，instanceof后面也不能使用泛型类。
 
+如果Foo是Bar的一个子类型（子类或者子接口），而G是具有泛型声明的类或接口，G<Foo>不是G<Bar>的子类型。数组和泛型不同，Foo[]依然是Bar[]的子类型。
+
 Java不支持泛型数组
 
-带通配符的List仅表示它是各种泛型List的父类，并不能把元素加入其中，使用get()方法取出的元素时Object类型。
+问号?称为通配符，可以代表任何类型。
+
+带通配符的List仅表示它是各种泛型List的父类，并不能把元素加入其中，唯一的例外是null，它是所有引用类型的实例。使用get()方法取出的元素是Object类型。
 
 		List<?> list = new ArrayList<String>();
 		//compile error
 		list.add(new Object());
 
+指定通配符上限的集合只能从中取元素，取出的元素的类型是上限的类型，不能向集合中添加元素。
+
 程序可以为类型形参设定多个上限，但至多只能有一个父类上限，可以有多个接口上限，用&连接，父类上限必须放在第一位。
 
 		class <T extends SuperClass & Interface1 & Interface2 ...>
+
+指定通配符下限的集合可以向其中添加元素，取出的元素只能被当成Object类型处理。
+
+如果Foo是Bar的一个子类型（子类或者子接口），
+
+- G<Foo>是G<? extends Bar>的子类
+- G<Bar>和G<Object>是G<? super Foo>的子类
 
 泛型方法：声明方法时定义一个或多个类型形参
 
 		修饰符 <T, S> 返回值类型 方法名(形参列表) {}
 
+方法中的泛型参数无须显式传入实际类型参数，编译器根据实参推断出最直接的类型（上限类型），推断时只比较方法签名中的使用了泛型的参数
+
 泛型方法和类型通配符的区别：
 
 使用类型通配符的参数或变量是无法在编译阶段确定其具体类型的。
 
-
 - 通配符是被设计用来支持灵活的子类化的，适合只需要在不同的调用点传入不同实际类型。
-- 如果某个方法中一个形参(a)的类型或返回值的类型依赖于另一个形参(b)的类型，则应该使用泛型方法在方法签名中声明类型参数。
+- 如果某个方法中一个形参(a)的类型或返回值的类型依赖于另一个形参(b)的类型，则应该使用泛型方法在方法签名中声明类型参数(b)。
 - 如果无需向集合中添加元素或删除元素，可以使用类型通配符，无需使用泛型方法
 - 类型通配符既可以在方法签名中定义形参的类型，也可用于定义变量的类型（List<? extends Number> c），但泛型方法中的类型形参必须在方法中显式声明。
 
+泛型构造器使用的泛型参数与所属类的泛型参数没有关系。
 如果程序指定了泛型构造器中声明的类型形参的实际类型，则不可以使用“菱形”语法。
 
 		class MyClass<E> {
@@ -687,18 +1164,26 @@ Java不支持泛型数组
 		//MyClass<String> mc = new <Integer> MyClass<>(5); wrong 
 
 
-使用类型通配符的方法可以重载但可能无法调用
+使用类型通配符的方法可以重载但无法调用
 
 		public static <T> void copy(Collection<T> dest, Collection<? extends T> src) {}
 		public static <T> void copy(Collection<? super T> dest, Collection<T> src) {} 
 
+Java8中改进了泛型方法的类型推断能力：
+
+- 通过调用方法的上下文来推断泛型的目标类型
+- 在方法调用链中，将推断得到的泛型传递到最后一个方法
+
 如果没有为泛型类指定实际的类型参数，则该类型参数被当成raw type处理，默认为声明该类型参数时指定的第一个上限类型。
 当把一个具有泛型信息的对象赋给一个没有泛型信息的变量时，所有在尖括号内的类型信息都会丢失，变成raw type。
 
+Java允许直接把List对象赋给一个List<Type>(Type可以是任意类型)类型的变量，但会发出“[unchecked]未经检查的转换”警告，对list变量的实际上的引用时List<Type>，所以当试图把集合里的元素当成OtherType类型的对象使用时将引发ClassCastException异常。
+
 如果一段代码在编译时没有提出“[unchecked]未经检查的转换”警告，则程序运行时不会引发ClassCastException异常。所以不能在创建数组时使用类型变量或类型形参，除非是无上限的类型通配符，但可以在声明这样的数组。比如可以声明List<String>[]类型的数组，但不能创建ArrayList<String>[10]这样的数组对象。
 
-在应用中，可以无上限的通配符来声明和创建数组对象，然后使用添加了instanceof判断的强制类型转换取出数组元素。
+在应用中，可以使用无上限的通配符来声明和创建数组对象，然后使用添加了instanceof判断的强制类型转换取出数组元素。
 
+创建元素类型是泛型类型的数组对象将导致编译错误。
 
 ## Chapter 10 异常处理 ##
 
@@ -706,27 +1191,47 @@ Java不支持泛型数组
 
 捕获异常的原则是先捕获小异常，再捕获大异常
 
-捕获多种类型的异常时，多种异常类型之间用竖线(|)隔开
+捕获多种类型的异常时
 
-捕获多种类型的异常时，异常变量有隐式的final修饰，因此程序不能对异常变量重新赋值。
+- 多种异常类型之间用竖线(|)隔开
+- 异常变量有隐式的final修饰，因此程序不能对异常变量重新赋值。
 
 如果try块的某条语句抛出异常，该语句后的其他语句都不会获得执行的机会。
 
-即使try块或catch块中执行了return语句，finally块总会被执行，而且catch块和finally块至少出现其中之一
+即使try块或catch块中执行了return语句，finally块总会被执行，而且catch块和finally块至少出现其中之一，finally块必须位于所有的catch块之后。
 
 如果在异常处理代码中调用了System.exit(1)来退出虚拟机，则finally块将失去执行的机会。
 
 通常情况下，不要在finally块中使用return或throw等会导致方法终止的语句，否则会造成try块，catch块中的return，throw语句失效。
 
-当java程序执行try块，catch块时遇到了return或throw语句，方法不会立即结束，系统会先去寻找该异常处理流程中是否包含finally块，如果没有，程序立刻执行这两个语句，方法终止；如果有finally块，系统立即开始执行finally块，然后才跳回来执行return和throw语句。所以如果finally块中也有return或throw语句，将不会再跳回try块和catch块执行任何代码
-。
+当java程序执行try块，catch块时遇到了return或throw语句，方法不会立即结束，系统会先去寻找该异常处理流程中是否包含finally块，如果没有，程序立刻执行这两个语句，方法终止；如果有finally块，系统立即开始执行finally块，然后才跳回来执行return和throw语句。所以如果finally块中也有return或throw语句，将不会再跳回try块和catch块执行任何代码。
+
+自动关闭的try语句允许在try关键字后面紧跟一对圆括号，括号内可以声明，初始化一个或多个资源，此处的资源指的是那些必须在该语句结束时显式关闭的资源。这些资源类必须实现AutoCloseable或Closeable接口。Closeable接口是AutoCloseable接口的子接口，close()方法抛出IOException异常，AutoCloseable接口的close()方法抛出Exception异常。Java9不要求在括号中声明并创建资源，只需要自动关闭的资源有final修饰或者是有效的final(effectively final)即可。因此可以在try块之前声明并创建final资源，在try后面的括号中直接引用。
+
+throws声明抛出只能在方法签名中使用，throws可以抛出多个异常类，每个类之间以逗号隔开。
+
+子类方法声明抛出的异常应该时父类方法声明抛出的异常的子类或相同，不允许比父类方法声明抛出的异常多。
+
+大部分时候推荐使用RunTime异常，因为无须在方法签名中声明抛出异常。
+
+如果throw语句抛出的异常是Checked异常，则该throw语句要么处于try块内，显式捕获该异常，要么放在一个带throws声明抛出的方法中；
+如果throw语句抛出的异常是RunTime异常，则该语句无须放在try块里，也无须放在带throws声明抛出的方法中，可以完全不理会该异常，由方法调用者自行处理。
+
+自定义异常类时通常需要提供两个构造器：
+
+- 无参数构造器
+- 带字符串参数构造器，字符串作为该异常对象的描述信息
 
 通常没有必要使用超过2层的嵌套异常处理
 
-可以再catch块中使用throw抛出新的异常以便于方法调用者对异常进行二次处理
+可以在catch块中使用throw抛出新的异常以便于方法调用者对异常进行二次处理。大型企业应用中，通常需要对异常分两部处理：
 
-方法签名中声明的抛出异常可以比捕捉的异常更具体，如方法声明throws FileNotFoundException，但方法体内catch Exception
+1. 应用后台需要通过日志来记录异常发生的详细情况
+2. 应用还需要根据异常向使用者传达某种提示
 
+方法签名中声明的抛出异常可以比捕捉的异常更具体，如方法声明throws FileNotFoundException，但方法体内catch Exception， 前提是方法体内抛出的异常只能是这个范围更小的异常。
+
+异常转译：程序先捕捉原始异常，然后抛出一个新的业务异常，其中包含了对用户的提示信息
 异常链：捕获一个异常然后接着抛出另一个异常，并把原始异常信息保存下来。
 
 如果main方法没有处理捕捉到的异常，jvm会中止程序运行，并打印异常的跟踪栈信息。
@@ -741,9 +1246,11 @@ Java不支持泛型数组
 
 - 不要过度使用异常。不要用异常处理代替流程控制，也不要和普通错误混在一起
 对于完全已知的错误，应该编写处理这种错误的代码，增加程序的健壮性。只有对外部的，不能确定和预知的运行时错误才使用异常。
-- 不适用过于庞大的try块
+不要使用异常处理代替正常的业务逻辑判断
+不要使用异常处理代替正常的程序流程控制
+- 不适用过于庞大的try块，把大块的try块分割成多个可能出现异常的程序块，并把他们放在单独的try块中，从而分别捕获并处理异常
 - 避免使用catch all语句
-- 不要忽略捕获到的异常
+- 不要忽略捕获到的异常，处理它，或者抛出它然后在合理的层处理它。
 
 
 ## Chapter 13 MySQL 数据库与JDBC编程 ##
@@ -1320,7 +1827,7 @@ DataSource通常被称为数据源，包含连接池和连接池管理两个部�
 
 ## Chapter 14 Annotation(注解) ##
 
-**APT(Annotation Processing Tool)**： 访问和处理Annotation的工具
+**APT(Annotation Processing Tool)**： 访问和处理Annotation的工具，检测并找出源代码所包含的注解信息，然后针对注解信息进行额外的处理
 
 5个基本的Annotation：
 
@@ -1339,19 +1846,26 @@ DataSource通常被称为数据源，包含连接池和连接池管理两个部�
 
 #### @Deprecated ####
 
-标识修饰的类，方法等已经过时，如果被使用，编译器将报警
+标识修饰的类，方法等已经过时，如果被使用，编译器将报警。Java9加入了2个属性：
+
+- forRemoval：该API在将来是否会被删除
+- since：指定该API从哪个版本被标记过时
 
 #### @SuppressWarnings ####
 
-关闭编译器警告，在`@SuppressWarnings`的后面加括号，里面使用`value="警告类型"`来指定关闭警告类型
+对该注解修饰的元素及其所有子元素都有效，关闭编译器警告，在`@SuppressWarnings`的后面加括号，里面使用`value="警告类型"`来指定关闭警告类型
 
     @SuppressWarnings(value="unchecked")
 
 #### @SafeVarargs ####
 
-**堆污染(Heap pollution)**：当把一个不带泛型的对象赋给一个带泛型的变量时，会造成堆污染，因为该对象内的数据类型可能与该变量指定的泛型类型不相符
+**堆污染(Heap pollution)**：当把一个不带泛型的对象赋给一个带泛型的变量时，会造成堆污染，因为该对象内的数据类型可能与该变量指定的泛型类型不相符。如果方法具有个数可变的形参，而该形参的类型又是泛型，则更容易出现堆污染，因为Java中没有泛型数组，而个数可变的形参实质就是数组。
 
-通过@SafeVarargs修饰方法或构造器可以关闭该方法或构造器的堆污染警告
+三种方法抑制堆污染警告：
+
+- 通过@SafeVarargs修饰方法或构造器可以关闭该方法或构造器的堆污染警告，Java9允许使用该注解修饰私有实例方法。
+- 使用`@SuppressWarnings("Unchecked")`修饰
+- 编译时使用`-Xlint:varargs`选项
 
 #### @FunctionalInterface ####
 
@@ -1370,8 +1884,8 @@ DataSource通常被称为数据源，包含连接池和连接池管理两个部�
 如果某个Annotation只需要为value成员变量指定值，则可以使用简化格式，在括号中只写入其值即可，不用使用`value=值`格式
 
 #### @Target ####
-只能修饰其他Annotation定义，用于指定被修饰的Annotation能用于修饰哪些元素。
-包含一个`ElementType`的value成员变量，使用时必须指定为以下值的组合：
+只能修饰其他Annotation定义，用于指定被修饰的Annotation能用于修饰哪些元素。 
+包含一个`ElementType`的value成员变量，使用时必须指定为以下值的组合，之间用逗号隔开：
 
 - `ElementType.ANNOTATION_TYPE`： 只能修饰其他Annotation
 - `ElementType.CONSTRUCTOR`： 只能修饰构造器
@@ -1383,27 +1897,43 @@ DataSource通常被称为数据源，包含连接池和连接池管理两个部�
 - `ElementType.TYPE`： 可以修饰类，接口，其他注解或枚举定义
 
 #### @Documented ####
-只能修饰其他Annotation，用于表明被他修饰的Annotation一旦修饰了程序元素，将出现在该元素的API文档中
-
+只能修饰其他Annotation，用于表明被他修饰的Annotation一旦修饰了程序元素，则该注解也会出现在该元素的API文档中
 
 #### @Inherited ####
-只能修饰其他Annotation，被修饰的Annotation在使用时自动被其修饰的类型的子类所继承。
+只能修饰其他Annotation，如果某个类使用了被此注解修饰的注解，则这个类的子类将自动被同样的注解修饰
 
 ### 自定义Annotation ###
 
 - **标记Annotation**： 没有定义成员变量的Annotation
 - **元数据Annotation**： 包含成员变量的Annotation
 
+注解的成员变量在注解定义中以无参数的方法形式来声明，其方法名和返回值定义了该成员变量的名字和类型。
+
     public @interface MyAnnotation {
     	String name() default "Martin";
     	int age() default 30;
     }
 
-使用自定义Annotation时，有默认值的成员变量可以不用显式指定值。
+使用自定义Annotation时，有默认值的成员变量可以不用显式指定值，没有默认值的成员变量必须显式指定值。
 
 Java使用java.lang.Annotation接口来代表所有的注解，它是所有注解的父接口。
 
-java.lang.reflect.AnnotatedElement接口的实现类（Class，Constructor，Filed，Method，Package）都有相应的方法调取相关的（包含或者修饰自己）Annotation的信息
+java.lang.reflect.AnnotatedElement代表了所有可以接受注解的程序元素。该接口的实现类（Class，Constructor，Filed，Method，Package）都有相应的方法调取相关的（包含或者修饰自己）Annotation的信息
+
+- <A extends Annotation> A getAnnotion(Class<A> annotationClass)：
+- <A extends Annotation> A getDeclaredAnnotion(Class<A> annotationClass)
+- Annotation[] getAnnotations()
+- Annotation[] getDeclaredAnnotion()
+- boolean isAnnotationPresent(Class<? extends Annotation> annotationClass)
+- <A extends Annotation>A[] getAnnotationsByType(Class<A> annotationClass)：Java8新增，功能类似getAnnotations()，但支持重复注解 
+- <A extends Annotation>A[] getDeclaredAnnotationsByType(Class<A> annotationClass)：Java8新增，功能类似getDeclaredAnnotations()，但支持重复注解
+
+#### 使用注解实现监听器模式 ####
+
+1. 定义一个带有ActionListener属性的注解类
+2. 定义一个监听器安装类，该类有一个带Object类型形参的类方法，负责为传入的对象的成员变量添加监听器
+3. 在某个类中声明需要监听器的变量时使用该注解类，并指定所需的监听器类型
+4. 在初始化类的对象时调用监听器安装类的类方法，把此对象作为实参传入
 
 #### Java8重复注解@Repeatable ####
 
