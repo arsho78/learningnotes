@@ -1,5 +1,9 @@
 # learning notes changelog #
 
+## 2019-02-28 ##
+### Added ###
+- ***Effective Java***笔记 78-85
+
 ## 2018-12-03 ##
 ### Modified ###
 - 完成更新***疯狂Java讲义***第十四章`注解`的学习笔记
