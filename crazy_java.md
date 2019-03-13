@@ -1109,7 +1109,9 @@ Java9中允许在创建匿名内部类时使用菱形语法，系统会根据上
 
 当实现使用泛型的接口，或者继承使用泛型的类时，不能在接口和父类名中使用类型形参，必须指定实际类型参数或者不传入任何类型参数
 
-调用方法时必须为所有的数据形参传入参数值，与调用方法不同，使用类，接口时也可以不为类型形参传入实际的类型参数。编译器会发出警告，并自动把类型参数设置为Object，这种省略了泛型的形式称为原始类型(raw type)
+调用方法时必须为所有的数据形参传入参数值，与调用方法不同，使用类，接口时也可以不为类型形参传入实际的类型参数。编译器会发出警告，这种省略了泛型的形式称为原始类型(raw type)
+
+
 
 不存在泛型类：不管为泛型的类型形参传入哪一种类型实参，java都会将他们作为同一个类处理，在内存中也只占用一块内存空间，因此在静态方法，静态初始化或者静态变量的声明和初始化中不允许使用类型参数，instanceof后面也不能使用泛型类。
 
@@ -1118,6 +1120,14 @@ Java9中允许在创建匿名内部类时使用菱形语法，系统会根据上
 Java不支持泛型数组
 
 问号?称为通配符，可以代表任何类型。
+
+使用raw type(MyType)和使用通配符?(MyType<?>)的区别：二者都可以用于表示泛型形参是任意类型的类或接口，但实现机制不同，raw type抹去了所有的泛型信息，也就关闭了泛型类型的检测，所以可以接受任意类型作为泛型参数的实参，因为它们并不起作用。此时，如果出现泛型类型污染，编译器不会发现报错，只有在运行时才会报错。而使用通配符?的接口和类型仍然保持了泛型类型的信息，?表示可以接受任何类型的泛型参数类型，但注意一旦为该使用了通配符的类或接口的实例指定了实际的泛型形参类型，该实例将使用该类型来做泛型类型检测，防止泛型类型污染。
+
+如果编译器在编译阶段不能确定使用了通配符?的集合中?所代表的具体的泛型参数类型，则不能往集合中添加任何元素。如该集合作为方法的参数的时候：
+
+		static void appendNewObject(List<?> list) {
+			list.append(new Object());  //compile error!
+		}
 
 带通配符的List仅表示它是各种泛型List的父类，并不能把元素加入其中，唯一的例外是null，它是所有引用类型的实例。使用get()方法取出的元素是Object类型。
 
@@ -1985,9 +1995,52 @@ Java8以前，注解只能用于各种程序元素的定义；Java8开始，类�
 
 ## Chapter 15 输入/输出 ##
 
-File类不能访问文件内容本身，需要使用输入/输出流。
+File类是java.io包下代表与平台无关的文件和目录。File类不能访问文件内容本身，需要使用输入/输出流。
+
+#### 访问文件名相关的方法 ####
+
+- String getName()
+- String getPath()
+- File getAbsoluteFile()
+- String getAbsolutePath()
+- String getParent()
+- boolean renameTo(File newName)
+
+#### 文件检测相关的方法 ####
+
+- boolean exist()
+- boolean canWrite()
+- boolean canRead()
+- boolean isFile()
+- boolean isDirectory()
+- boolean isAbsolute()
+
+#### 获取常规文件信息 ####
+
+- long lastModified()
+- long length()
+
+#### 文件操作相关的方法 ####
+
+- boolean createNewFile()
+- boolean delete()
+- static File createTempFile(String prefix, String suffix)
+- static File createTempFile(String prefix, String suffix, File Directory)
+- void deleteOnExit()
+
+#### 目录操作相关的方法 ####
+
+- boolean mkdir()
+- String[] list()
+- File[] listFiles()
+- static File[] listRoots()
 
 `getAbsoluteFile`和`getAbsolutePath`的区别在于前者返回的是File对象，后者返回的是String对象。
+
+当使用相对路径的File对象来获取父路径时可能引起错误，返回null，因为该方法返回的是将该File对象对应的相对路径的目录名，文件名里的最后一个子目录名，子文件名删除后的结果。
+
+在File类的list方法中可以接受一个FilenameFilter参数，通过该参数列出符合条件的文件。
+FilenameFilter是一个函数式接口，包含了一个accept(File dir, String name)方法，该方法将依次对指定File的所有子目录和文件进行迭代，如果返回true，则list()方法会列出该子目录或文件。
 
 Java支持使用`/`作为平台无关的路径分隔符，否则在windows平台下必须使用两条`\`来作为路径分隔符， 如`d:\\temp\\tmp.txt`
 
@@ -1995,26 +2048,45 @@ Java支持使用`/`作为平台无关的路径分隔符，否则在windows平台
 - **输出流：**只能写数据，不能读数据
 
 输入/输出流是从程序运行所在的内存角度判断，例如，内存写到硬盘是输出流。
+输入流主要以InputStream和Reader作为基类，输出流主要以OutputStream和Writer作为基类，这些都是抽象基类，无法直接创建实例。
 
 - **字节流：**操作的数据单元是8位的字节
 - **字符流：**操作的数据单元是16位的字符
 
 字节流以InputStream和OutputStream作为基类，字符流则以Reader和Writer作为基类。
 
-- **节点流（低级流/low level stream）：**可以从/向一个特定的IO设备读/写数据的流
-- **处理流（高级流/high level stream）：**对一个已存在的流进行连接或封装，通过封装后的流来实现数据的读/写功能
+- **节点流（低级流/low level stream）：**可以从/向一个特定的IO设备读/写数据的流，直接连接到实际的数据源，和实际的输入输出节点连接
+- **处理流（高级流/high level stream）：**对一个已存在的流进行连接或封装，通过封装后的流来实现数据的读/写功能。不直接连接到实际的数据源，也没有和实际的输入输出节点连接。
+
+处理流是典型的装饰器模式。 
 
 处理流的功能：
 - 提高性能：主要以增加缓冲的方式提高输入/输出的效率
 - 方便操作：提供一系列便捷方法来操作大量内容
 
 ### InputStream & Reader ###
+#### 读取数据的方法 ####
+
 - `read()` 返回所读取的字节/字符数据
 - `read(byte[] b)`/`read(char[] cbuf)` 返回实际读取的字节数/字符数
 - `read(byte[] b, int off, int len)`/`read(char[] cbuf, int off, int len)` 返回实际读取的字节数/字符数
 - 如果返回-1，说明到达输入流的终点
 
+#### 操作记录指针的方法 ####
+
+- void mark(int readAheadLimit)：在记录指针当前位置设置一个标记
+- boolean markSupport()：判断此输入流是否支持mark()操作
+- void reset()：将此流的记录指针重新定位到上一次记录标记mark的位置
+- long skip(long n)：记录指针向前移动n个字节/字符。
+
 ### OutputStream & Writer ###
+
+- void write(int c)
+- void write(byte[]/char[] buf)
+- void write(buye[]/char[], int off, int len)
+- void write(String s)                    //Writer类专有
+- void write(String s, int off, int len)  //Writer类专有
+
 Writer 除了可以使用字符数组作为`write()`方法的参数，还可以使用字符串作为参数，即：`write(String s)`和`write(String s, int off, int len)`
 
 通过java的IO流执行输出时，不要忘记关闭输出流，这样除了可以保证流的物理资源被回收之外，可能还可以将输出流缓冲区中的数据flush到物理节点中，因为在执行` `前会自动执行输出流的`flush()`方法
@@ -2048,6 +2120,10 @@ Writer 除了可以使用字符数组作为`write()`方法的参数，还可以�
 
 ### 推回输入流 ###
 
+- void unread(byte[]/char[] buf)
+- void unread(byte[]/char[] buf, int off, int len)
+- void unread(int b)
+
 `PushbackInputStream`和`PushbackReader`都带有一个推回缓冲区，当程序调用这两个流的`unread()`方法时，系统将会把指定数组的内容推回到缓冲区里，而推回输入流每次调用`read()`方法时总是先从推回缓冲区读取，只有在完全读取了推回缓冲区的内容后仍然没有装满`read()`所需数组时才会从原输入流中读取。
 
 如果程序中推回到推回缓冲区的内容超出了缓冲区的大小，将会引发`Pushback buffer overflow`的IOException异常。
@@ -2064,8 +2140,10 @@ Writer 除了可以使用字符数组作为`write()`方法的参数，还可以�
 
 如果需要访问文件部分内容或在文件后追加内容，应该使用`RandomAccessFile`
 
-
 `RandomAccessFile`只能读写文件，不能读写其他IO节点
+
+- long getFilePointer()
+- void seek(long pos)
 
 `RandomAccessFile`的访问模式：
 
@@ -2078,13 +2156,17 @@ Writer 除了可以使用字符数组作为`write()`方法的参数，还可以�
 
 ### 对象序列化 ###
 
+对象序列化机制允许把内存中的Java对象转换成平台无关的二进制流，从而允许把这种二进制流保存在磁盘上，或者通过网络进行传输。
+
 **对象的序列化Serialize**：将一个Java对象写入IO流中
 **对象的反序列化Deseialize**：从IO流中恢复该Java对象
 
 可序列化的类必须实现如下2个接口之一：
 
-- `Serializable`
+- `Serializable`：仅仅是一个标记接口，不用实现任何方法。
 - `Externalizable`
+
+Java9允许对读入的序列化数据进行过滤，这样就可以在反序列化之前对数据执行校验。
 
 所有可能在网络上传输或需要存储在磁盘里的对象的类都必须是可序列化的。
 
@@ -2104,9 +2186,9 @@ Writer 除了可以使用字符数组作为`write()`方法的参数，还可以�
 
 反序列化机制无须通过构造器来初始化Java对象
 
-如果序列化了多个Java对象到一个文件，反序列化时必须按照实际写入的顺序读取
+如果序列化了多个Java对象到一个文件，反序列化时必须按照实际写入的顺序读取。为了解决EOFException的问题，可以将多个对象放入一个容器对象中，如数组或集合，然后把这个容器序列化，读取时只用读取该容器，再从容器中取出其他对象。这样就不用判断是否读到了最后一个对象。44
 
-当一个可序列化类有多个父类时，这些父类必须满足以下条件之一:
+当一个可序列化类有多个父类时，这些父类必须满足以下条件之一，否则反序列化时会抛出InvalidClassException:
 
 - 父类也是可序列化的
 - 父类有无参数的构造器，如果不是可序列化的，则父类的成员变量值不会序列化到二进制流中
@@ -2121,9 +2203,16 @@ Java的序列化算法：
 
 因此，如果一个对象的某个成员变量的值在该对象被序列化后发生改变，即使再次执行`writeObject()`方法，该变化也不会被记录，在反序列化时读取出来的依然是改变前的原值
 
+#### Java9新增的过滤功能 ####
+Java9为ObjectInputStream新增了setObjectInputFilter(), getObjectInputFilter()方法。当程序通过ObjectInputStream反序列化对象时，过滤器的checkInput()方法被自动激发，该方法有3中返回值：
+
+- Status.REJECTED：拒绝恢复
+- Status.ALLOWED：允许恢复
+- Status.UNDECIDED：未做决定，继续检查
+
 **递归序列化**：序列化对象时，所有的成员变量都会被序列化，以此类推
 
-`transient`关键字只可用于实例变量，不可修饰其他成分
+`transient`关键字只可用于实例变量，表示该实例变量无须序列化，不可修饰其他成分
 
 如果需要在序列化某类对象时对数据特殊处理，可以在该类中提供特殊签名的方法：
 
@@ -2132,6 +2221,8 @@ Java的序列化算法：
 - `private void readObjectNoData() throws ObjectStreamException`
 
 `writeObject()`方法和`readObject()`方法对对象的处理顺序必须保持一致
+
+当序列化流不完整时，readObjectNoData()方法可以用来正确地初始化反序列化的对象，例如接收方使用的反序列化的类的版本不同于发送方，或者接收方版本扩展的类不是发送方版本扩展的类，又或者序列化流被篡改时，系统都会调用readObjectNoData()方法来初始化反序列化的对象。
 
 可以用另一个对象来完全替代某个可序列化对象：
 
@@ -2142,9 +2233,11 @@ Java的序列化算法：
 
 `readResolve()`方法会紧接着`readObject()`方法之后被调用，该方法的的返回值会取代反序列化恢复的对象，而恢复的对象将被抛弃。该方法在序列化单例类，枚举类时尤其有用。
 
+反序列化机制在恢复java对象时无须调用构造器来初始化Java对象，所以可以用来克隆对象
+
 `final`类重写`readResolve()`方法没有问题，否则应该尽量使用`private`修饰该方法
 
-使用`Externalizable`接口的类必须提供一个无参数的构造器，否则编译出错：`no valid construction`
+使用`Externalizable`机制反序列化对象时，程序会先使用public的无参数构造器创建实例，然后才执行readExternal()方法进行反序列化，因此实现此接口的类必须提供一个无参数的构造器，否则编译出错：`no valid construction`
 
 `Externalizable`接口包含方法：
 
@@ -2176,12 +2269,24 @@ Java的序列化算法：
 
 ### NIO ###
 
+传统的输入输出流都是阻塞式的流，一次只能处理一个字节，新IO采用内存映射文件的方式来处理输入/输出，主要包含以下几个包：
+
+- java.nio
+- java.nio.channels
+- java.nio.charset
+- java.nio.channels.spi
+- java.nio.charset.spi
+
 - **通道(Channel)**：在新IO系统中所有的数据都必须通过通道传输，与传统InputStream，OutputStream最大的区别是它提供了一个`map()`方法，可以把一块数据映射到内存中
 - **缓冲(Buffer)**：本质是一个数组，发送到Channel中的所有的对象都必须放在Buffer中，而从Channel中读取的数据也必须先放到Buffer中
 
-获得Buffer对象的方法：
+新IO还提供了将Unicode字符串映射成字节序列以及逆映射操作的Charset类，和用于支持非阻塞式输入输出的Selector类。
+
+Buffer是个抽象咧，除boolean外的基本类型都要对应的XxxBuffer类，这些Buffer类都没有构造器，获得Buffer对象的方法：
 
 	static XxxBuffer allocate(int capacity)
+
+常用的主要时ByteBuffer类和CharBuffer类，其中ByteBuffer类还有一个MappedByteBuffer子类，用于表示Channle将磁盘文件的部分或者全部内容映射到内存中后得到的结果，由Channle的map()方法返回。
 
 - **容量(capacity)**： 表示该buffer的最大数据容量，即最多可以存储多少数据，不可能为负值，创建后不能改变
 - **界限(limit)**： 第一个不该被读出或写入的缓冲区位置索引，位于limit后的数据既不可被读，也不可被写
@@ -2189,9 +2294,22 @@ Java的序列化算法：
 
 	0<=mark<=position<=limit<=capacity
 
-如果position或者limit<mark，则mark会被抛弃
+如果position或者limit < mark，则mark会被抛弃
 
-当buffer装入数据结束后，调用buffer的`flip()`方法，该方法将limit设置为position的位置，并将position归零，从而使buffer做好输出数据的准备；当bufffer输出数据结束后，buffer调用`clear()`方法，该方法并不清空buffer的数据，仅仅将position归零，将limit设为capacity，这样为再次向buffer中装入数据做好准备。
+开始时Buffer的Position为0，limit为capacity，程序可以通过put()方法向Buffer中放入数据，Buffer的position也会相应地向后移动。当buffer装入数据结束后，调用buffer的`flip()`方法，该方法将limit设置为position的位置，并将position归零，从而使buffer做好输出数据的准备；当bufffer输出数据结束后，buffer调用`clear()`方法，该方法并不清空buffer的数据，仅仅将position归零，将limit设为capacity，这样为再次向buffer中装入数据做好准备。
+
+Buffer常用方法：
+
+- int capacity()
+- boolean hasRemaining()：position和limit之间是否还有元素
+- int limit()
+- Buffer limit(int newLt)
+- Buffer mark()：在0和position之间做mark
+- int position()
+- Buffer position(int newPs)
+- int remaining()
+- Buffer reset()：position转到mark所在位置
+- Buffer rewind()：position归零，删除mark
 
 使用`put()`和`get()`访问buffer中的数据时，分为相对和绝对：
 
@@ -2201,7 +2319,7 @@ Java的序列化算法：
 	- `put()`抛出`BufferOverflowException`异常
 - 绝对： 直接根据索引向buffer中读取或写入数据，并不会影响position的值。如果index非法，则抛出`IndexOutofBoundsException`异常
 
-只有`ByteBuffer`才能创建直接buffer，而且直接buffer只适用于长生存期的buffer，不适用于短生存期的buffer
+只有`ByteBuffer`才能通过allocateDirect()方法创建直接buffer，而且直接buffer只适用于长生存期的buffer，不适用于短生存期的buffer
 
 Channel与传统IO区别：
 
@@ -2225,6 +2343,16 @@ Channel中最常用的3个方法：
 **编码(Encode)**：把明文字符序列转换为二进制序列
 **解码(Decode)**：把二进制序列转换为明文字符序列
 
+Charset类提供了一个avaailableCharsets()类方法来获取当前JDK所支持的所有字符集。
+
+Charset类常用方法：
+
+- CharBuffer decode(ByteBuffer bb)
+- ByteBuffer encode(CharBuffer cb)
+- ByteBuffer encode(String str)
+
+String类也提供了一个getBytes(String charset)方法用于返回一个使用指定字符集将字符串转换的byte[]
+
 使用`FileChannel`中的`lock()`和`trylock()`方法获得`FileLock`对象，两个方法的区别是：如果不能获得文件锁，`lock()`方法会阻塞程序，`trylock()`方法会返回null
 
 锁定部分内容：
@@ -2237,19 +2365,36 @@ Channel中最常用的3个方法：
 
 无参数的`lock()`和`trylock()`方法获取的都是排它锁
 
+通过FileLock的isShared()方法判断获得的文件锁是否是排它锁，通过FileLock的release()方法释放文件锁。
+
 ### Java7的NIO.2 ###
+
+Path接口代表一个平台无关的平台路径；
+Files类包含了大量用于操作文件的类方法；
+Paths类包含了两个返回Path的静态工厂方法。
 
 `getNameCount()`方法返回Path路径所包含的路径名的数量，也就是路径的深度
 
 #### 使用`FIleVisitor`遍历文件和目录： ####
 
-    walkFileTree(Path start, FileVisitor<? super Path> visitor)
-    walkFileTree(Path start, Set<FileVisitOption> options, int maxDepth, FileVisitor<? super Path> visitor)
-    //遍历文件盒子目录会触发FileVisitor中相应的4中方法之一
-    FileVisitResult postVisitDirectory(T dir, IOException exc)  //访问子目录后触发
-    FileVisitResult preVisitDirectory(T dir, IOException exc)  //访问子目录前触发
-    FileVisitResult visitFile(T file, BasicFileAttributes attrs)  //访问文件时触发
-    FileVisitResult visitFileFailed(T file, IOException exc)  //访问文件失败时触发
+Files类用于遍历文件和目录的方法：
+
+- walkFileTree(Path start, FileVisitor<? super Path> visitor)：遍历start路径下的所有文件和目录
+- walkFileTree(Path start, Set<FileVisitOption> options, int maxDepth, FileVisitor<? super Path> visitor)
+
+FileVisitor代表一个文件访问器，遍历文件盒子目录会触发FileVisitor中相应的4中方法之一
+
+- FileVisitResult postVisitDirectory(T dir, IOException exc)  //访问子目录后触发
+- FileVisitResult preVisitDirectory(T dir, IOException exc)  //访问子目录前触发
+- FileVisitResult visitFile(T file, BasicFileAttributes attrs)  //访问文件时触发
+- FileVisitResult visitFileFailed(T file, IOException exc)  //访问文件失败时触发
+
+FileVIsitResult是一个枚举类，代表了访问之后的后续行为：
+
+- CONTINUE
+- SKIP_SIBLINGS
+- SKIP_SUBTREE
+- TERMINATE
 
 实际编程时可以通过继承`SimpleFileVisitor`来实现自己的文件访问器
 
@@ -2257,11 +2402,981 @@ Channel中最常用的3个方法：
 watcher用于监听变化，每个变化对应一个event，WatchKey相当于在监听但未查询期间所发生的event集合。
 类似于：watcher相当于监听记录本，WatchKey就是监听记录本上的未读记录，event就是监听记录本上的每条记录，
     register(WatchService watcher, WatchEvent.kind<?>... events)
+	//WatchService代表一个文件系统监听服务
     //使用WatchService的三个方法来获得被监听的目录的文件变化事件
     WatchKey poll()  //获取下一个WatchKey, 没有则立刻返回null
     WatchKey poll(long timeout, TimeUnit unit)  //尝试等待timeout时间去获取下一个WatchKey
     WatchKey take()  //获取下一个WatchKey，没有则一直等待
 如果程序需要一直监控，应使用`take()`方法；如果只需要监控指定时间，则使用`poll()`方法
+
+#### 访问文件属性 ####
+
+使用java.nio.file.attribute包下的工具类操作文件的属性，主要分为两大类：
+
+- XxxAttribtueView：代表某种文件属性的视图，FileAttributeView是其他视图类的父接口
+- XxxAttributes：代表某种文件属性的集合，一般通过XxxAttribtueView对象来获取XxxAttributes
+
+常用视图类：
+
+- AclFileAttributeView：设置文件的ACL（Access Control List），getAcl()方法返回List<AclEntry>对象
+- BasicFileAttributeView：readAttributes()方法返回BasicFileAttributes对象
+- DosFileAttributeView：readAttributes()方法返回DosFileAttributes对象
+- FileOwnerAttributeView：getOwner()方法返回一个UserPrincipal对象代表文件所有者，setOwner(UserPrincipal owner)方法改变文件的所有者
+- PosixFileAttributeView：readAttributes()方法返回PosixFileAttributes对象
+- UserDefinedFileAttributeView
+
+## Chapter 16 多线程##
+
+### 线程概述 ###
+
+操作系统可以同时执行多个任务，每个任务就是一个进程；
+进程可以同时执行多个任务，每个任务就是一个线程。
+
+进程是处于运行过程中的程序，并且具有一定的独立能力，进程是系统进行资源分配和调度的一个独立单位。
+
+进程包含以下三个特征：
+
+- 独立性：进程是系统中独立存在的实体，可以拥有自己独立的资源，每个进程都有自己私有的地址空间。在没有经过进程本身允许的情况下，进程不能访问其他进程的地址空间
+- 动态性：程序只是一个静态的指令集合，进程是一个正在系统中活动的指令集合。进程具有自己的生命周期和各种不同的状态。
+- 并发性：多个进程可以在单个处理器上并发执行。
+
+并发性(concurrency)和并行性(parallel)是两个概念：
+
+- 并行：在同一时刻，有多条指令在多个处理器上同时执行；
+- 并发：在同一时刻，只有一条指令在执行，但多个进程指令被快速轮换执行，从而在宏观上具有多个进程同事执行的效果
+
+线程/轻量级进程(lightweight process)：是进程的执行单元，在程序中是独立的，并发的执行流。
+
+当进程被初始化后，主线程就被创建了，但也可以在该进程内创建多条顺序执行流，这些顺序执行流就是线程，每个线程也是相互独立的。
+
+一个进程可以拥有多个线程，一个线程必须拥有一个父进程。线程可以拥有自己的堆栈，程序计数器和自己的局部变量，但不拥有系统资源，而是与父进程的其他线程共享该进程所拥有的全部资源。
+
+线程是独立运行的，不知道进程中是否还有其他线程存在。它的执行时抢占式的，运行中的线程在任何时候都可能被挂起，以便另一个线程可以运行。
+
+一个线程可以创建和撤销另一个线程，同一个进程中的多个线程之间可以并发执行。
+
+线程比进程具有更高的性能，因为同一个进程中的线程都有共性，共享同一个进程的虚拟空间。
+
+### 线程的创建和启动 ###
+
+Java使用Thread类代表线程，所有的线程对象都必须是Thread类或其子类的实例。
+
+#### 继承Thread类创建线程类 ####
+通过继承Thread类来创建并启动多线程的步骤：
+
+- 定义Thread类的子类，并重写该类的run()方法，其方法体就代表了线程需要完成的任务
+- 创建Thread子类的实例，即线程对象
+- 调用线程对象的start()方法启动该线程
+
+主线程的线程执行体不是由run()方法确定的，而是由main()方法确定的。
+
+`Thread.currentThread()`：Thread类的类方法，返回当前正在执行的线程对象。
+
+使用继承Thread类的方法创建线程类时，多个线程之间无法共享线程类的实例变量。
+
+#### 实现Runnable接口创建线程类 ####
+步骤：
+
+- 定义Runnable接口的实现类，实现该接口的run()方法
+- 创建Runnable实现类的实例，并以此实例作为Thread的target来创建Thread对象
+- 调用线程对象的start()方法启动线程
+
+Runnable对象仅仅作为Thread对象的target，Runnable实现类里包含的run()方法仅作为线程执行体，实际的线程对象依然是Thread实例，只是该Thread线程负责执行其target的run()方法。
+
+通过继承Thread类来获得当前线程对象可以直接使用`this`关键字；通过事项Runnable接口来获得当前线程对象必须使用`Thread.currentThread()`方法。
+
+采用Runnable接口创建的多个线程可以共享线程类的实例变量，因为此时多个线程之间是共享同一个target，即同一个Runnable实现类的对象。
+
+#### 使用Callable和Future创建线程 ####
+Callable接口是一个函数式接口，提供了一个call()作为线程执行体，该方法可以：
+
+- 具有返回值，返回值类型与接口的泛型形参参数类型相同
+- 声明抛出异常
+
+Future接口代表Calla接口里的call()方法的返回值，其实现类FutureTask也实现了Runnable接口
+
+Future接口常用方法：
+
+- boolean cancel(boolean mayInterruptIfRunning)：尝试取消该Future里关联的Callable任务
+- V get()：返回Callable任务里call()方法的返回值，调用该方法将导致程序阻塞，必须等到子线程结束返回返回值
+- V get(long timeout, TimeUnit unit)：在指定时间内等待返回值，超过时间就抛出`TimeoutException`异常
+- boolean isCancelled()：如果任务正常完成前被取消，返回`true`
+- boolean isDone()：如果任务正常完成，返回`true`
+
+创建并启动有返回值的线程的步骤：
+
+- 创建Callable接口的实现类，并实现cal()方法，然后创建该实现类的实例
+- 使用FutureTask类包装Callable对象
+- 使用FutureTask对象作为Thread对象的target创建并启动新线程
+- 调用FutureTask对象的get()方法来获得子线程执行结束后的返回值
+
+#### 创建线程的三种方式的比较 ####
+通过实现Runnable和Callable接口创建的线程类可以继承其他类，创建的线程对象可以共享同一个target对象，从而实现资源共享，推荐使用。
+
+### 线程的生命周期 ###
+新建(new)，就绪(runnable)，运行(running)，阻塞(blocked)，死亡(dead)
+
+#### 新建和就绪 ####
+当程序使用`new`关键字创建了一个新线程后，该线程就处于新建状态，由Java虚拟机为其分配内存并初始化其成员变量的值。
+当程序调用了`start()`方法后，线程处于就绪状态，Java虚拟机为其创建方法调用栈和程序计数器，处于这个状态的线程并没有开始运行，只是表示可以运行，具体什么时候由jvm的线程调度器决定。
+
+永远不要调用线程对象的run()方法。因此这会把线程对象当成普通的对象处理，run()当成普通的方法而不是线程执行体。此时run()方法会一直执行下去，直到任务完成或出现错误，异常而中止。
+
+创建新线程对象后，调用`run()`方法或`start()`方法将使其从新建状态进入就绪状态，此时不能再次调用`start()`方法，否则会抛出`IllegalThreadStatusException`异常。
+
+#### 运行和阻塞状态 ####
+如果处于就绪状态的线程获得了cpu，开始执行`run()`方法的线程执行体，该线程就处于运行状态。
+
+- 抢占式策略：系统给每个可执行的线程一个时间段来处理任务，超过时间系统就会剥夺该线程所占用的资源，让其他线程获得执行机会。
+- 协作式策略：只有当一个线程主动调用了它的`sleep()`或`yield()`方法后才会放弃所占用的资源
+
+发生以下情况时，线程进入阻塞状态：
+
+- 线程调用`sleep()`方法主动放弃所占用的资源，睡眠时间结束解除阻塞
+- 线程调用了一个阻塞式IO方法，在该方法返回之前，该线程被阻塞，方法返回后解除阻塞
+- 线程试图获得一个同步监视器，但该同步监视器被其他线程持有，取得该同步计数器后解除阻塞
+- 线程在等待某个通知，获得其他线程的通知后解除阻塞
+- 程序调用了线程的`suspend()`方法将该线程挂起，调用`resume()`方法解除阻塞，容易引起死锁，应尽量避免使用该方法
+
+#### 线程死亡 ####
+线程以以下三种方式结束后处于死亡状态：
+
+- `run()`或`call()`方法执行完成，线程正常结束
+- 线程抛出一个未捕获的Exception或Error
+- 直接调用该线程的stop()方法结束该线程，容易造成死锁
+
+当主线程结束时，其他线程不收任何影响，不会随之结束。一旦子线程启动，它就拥有与主线程相同的地位，不会受主线程影响。
+
+调用线程对象的`isAlive()`方法判断某个线程是否已经死亡。调用已死亡的线程对象的start()方法会抛出`IllegalThreadStatusException`异常
+
+### 控制线程 ###
+
+#### join线程 ####
+通过在线程A的线程执行体中调用线程B的join()方法，使得线程B加入到线程A的执行，线程A必须等线程B执行完毕或者指定等待时间结束后才能继续执行。
+
+- join()
+- join(long millis)
+- join(long millis, int nanos)
+
+#### 后台线程 ####
+后台线程(Daemon Thread)：在后台运行，为其他线程提供服务的线程。如果所有的前台线程都死亡，后台线程会自动死亡。
+
+调用`Thread`对象的`setDaemon(true)`可将指定线程设置成后台线程，但必须在线程启动，即调用`start()`方法之前设置，否则引发`IllegalThreadStatusException`异常
+
+前台线程创建的子线程默认就是前台线程，后台线程创建的子线程默认就是后台线程。
+
+#### 线程睡眠sleep ####
+在线程睡眠期间，即使系统中没有任何其他可执行的线程，该线程也不会获得任何执行的机会
+
+- sleep(long millis)
+- sleep(long millis, int nanos)
+
+Thread类的`yield()`类方法不会让线程进入睡眠，而是转入就绪状态。此时，只有优先级大于等于当前线程的处于就绪状态的线程（包括才被转入就绪状态的当前线程）才会获得执行机会。
+
+`sleep()`与`yield()`方法的区别：
+
+- `sleep()`方法暂停当前线程后，所有处于就绪状态的线程都有可能获得执行机会，不用考虑优先级；`yield()`方法则要求新执行的线程的优先级要大于等于当前线程。
+- `sleep()`方法有指定的休眠时间，在此期间该线程处于阻塞状态，而`yield()`方法则是立刻转入就绪状态
+- `sleep()`方法声明抛出了`InterruptedException`异常，必须对其进行处理，而`yield()`方法没有声明抛出任何异常
+- `sleep()`方法拥有更好的可移植性
+
+#### 改变线程优先级 ####
+每个线程默认的优先级都与创建它的父线程的优先级相同。默认情况下，main线程具有普通优先级。
+
+Thread类的`setPriority(int newPriority)`方法可以设置指定线程的优先级。优先级是一个1~10之间的整数。有3个相关的类变量：
+
+- MAX_PRIORITY：10    
+- MIN_PRIORITY：1
+- NORMAL_PRIORITY：5
+
+由于各操作系统的优先级定义可能不同，尽量使用上面的静态常量来设置优先级。
+
+### 线程同步 ###
+	
+#### 同步代码块 ####
+
+		//obj是同步监视器
+		synchronized(obj) { 
+			... //需要同步的代码块
+		}
+#### 同步方法 ####
+使用`synchronized`修饰的实例方法（非静态方法）无须显式指定同步监视器，其值就是`this`，也就是调用该方法的对象。
+
+`synchronized`可以修饰方法，代码块，但不能修饰构造器，成员变量等。
+
+领域驱动设计(Domain Driven Design)：设计的每个类都应该是完备的领域对象，应该具备完整的领域功能，如银行账户类应该提供取钱和存钱功能。
+
+使用同步代码块和同步方法的策略：
+
+不要对线程安全类的所有方法都进行同步，只对那些会改变竞争资源的方法进行同步
+如果可变类有单线程，多线程两种运行环境，则应该为其提供线程不安全和线程安全两种版本，参考`StringBuilder`和`StringBuffer`类
+
+#### 释放同步监视器的锁定 ####
+程序无法显式释放对同步监视器的锁定，线程会在以下情况自动释放：
+
+- 当前线程的同步方法，同步代码块执行结束
+- 当前线程在同步代码块，同步方法中遇到`break`，`return`终止了该代码块，方法的进行执行
+- 当前线程在同步代码块，同步方法中出现了未处理的Error或Exception，导致该代码块，方法异常结束
+- 当前线程执行同步代码块或同步方法时，程序调用了同步监视器对象的`wait()`方法
+
+以下情况不会释放同步监视器：
+
+- 线程执行同步代码块或同步方法时，程序调用Thread.sleep()，Thread.yield()方法来在听当前线程的执行
+- 线程执行同步代码块时，其他线程调用了该线程的suspend()方法将该线程挂起
+
+#### 同步锁 ####
+Lock时控制多个线程对共享资源进行访问的工具。提供了对共享资源的独占访问，每次只能有一个线程对Lock对象加锁，线程开始访问共享资源之前要先获得Lock对象。
+
+Lock，ReadWriteLock是Java5提供的两个根接口。ReentrantLock是Lock的实现类，ReentrantReadWriteLock是ReadWriteLock的实现类。Java8新增了StampedLock类，可以替代传统的ReentrantReadWriteLock类
+
+使用ReentrantLock的代码模板：
+
+		class X {
+			//定义锁对象
+			private final ReentrantLock lock = nwe ReentrantLock();
+			...
+			//定义需要保证线程安全的方法
+			public void m() {
+				//加锁
+				lock.lock();
+				try {
+					//需要保证线程安全的代码块
+					//method body
+				}
+				//使用finally块来保证释放锁
+				finally {
+					lock.unlock();
+				}
+			}
+		}
+
+同步方法或同步代码块使用与竞争资源相关的，隐式的同步监视器，并强制要求加锁和释放锁要在同一个块结构中，并且当获取了多个锁时，必须以相反的顺序释放，且必须在与所有锁被获取时相同的范围内释放所有锁。而使用Lock对象则可以通过使用finally块实现加锁和解锁出现在不同的作用范围内。
+
+ReentrantLock锁具有可重入性，也就是锁可以嵌套加锁。
+
+#### 死锁 ####
+死锁和阻塞不同，死锁是因为阻塞出现了回路，即线程A和线程B都因为需要等待对方的执行结果而处于阻塞状态。
+
+### 线程通信 ###
+#### 传统的线程通信 ####
+使用同步监视器对象的`wait()`，`notify()`，`notifyAll()`方法，这三个方法继承自Object类
+
+- 同步方法：同步监视器就是该类的实例，所以可以直接在方法中调用这三个方法
+- 同步代码块：同步监视器是`synchronized`后面括号里的对象，所以必须调用该对象的这三个方法
+
+- `wait()`：导致当前线程等待，直到其他线程调用该同步监视器的`notify()`或`notifyAll()`方法来唤醒该线程，或者指定等待时间结束后自动唤醒
+- `notify()`：随机唤醒在此同步监视器上等待的单个线程
+- `notifyAll()`：唤醒所有在此同步监视器上等待的线程
+
+#### 使用`Condition`控制线程通信 ####
+使用`Lock`对象保证同步时，使用`Condition`类来保持协调。`Condition`类的实例被绑定在一个`Lock`对象上，需要通过`Lock`对象的`newCondition()`方法来获得相应的`Condition`实例。
+
+`Condition`常用方法：
+
+- `await()`：导致当前线程等待，直到其他线程调用该`Condition`对象的`signal()`或`signalAll()`方法来唤醒该线程，或者指定等待时间结束后自动唤醒，有很多变体，具体参考API
+- `signal()`：随机唤醒在此`Lock`对象上等待的单个线程
+- `signalAll()`：唤醒所有在此`Lock`对象上等待的线程
+
+#### 使用阻塞队列(BlockingQueue)控制线程通信 ####
+`BlockingQueue`接口是`Queue`的子接口，当生产者试图向已满的`BlockingQueue`中放入元素时，线程被阻塞，当消费者试图从空的`BlockingQueue`中取出元素时，线程被阻塞。
+
+`BlockingQueue`常用的方法：
+
+- 在队列尾部插入元素以及当队列已满时的处理：
+	- `add(E e)`：抛出异常
+	- `offer(E e)`：返回false
+	- `put(E e)`：阻塞队列
+- 在队列头部删除并返回删除的元素，以及队列已空时的处理
+	- `remove()`：抛出异常
+	- `poll()`：返回false
+	- `take()`：阻塞队列
+- 在队列头部取出但不删除元素以及队列为空时的处理：
+	- `element()`：抛出异常
+	- `peek()`：返回`false`
+
+`BlockingQueue`的5个实现类：
+
+- `ArrayBlockingQueue`：基于数组实现的`BlockingQueue`
+- `LinkedBlockingQueue`：基于链表实现的`BlockingQueue`
+- `PriorityBlockingQueue`：元素按自然排序或定制排序的顺序取出
+- `SynchronousQueue`：同步队列，对该队列的存取操作必须交替进行
+- `DelayQueue`：基于`PriorityBlockingQueue`类并实现`Delay`接口（该接口只有一个`long getDelay()`方法），根据`getDelay()`方法的返回值排序 
+
+### 线程组和未处理的异常 ###
+`ThreadGroup`代表线程组，用户创建的所有线程都属于某个线程组，如果没有显式指定所属线程组，则该线程属于默认线程组。默认情况下，子线程和创建它的父线程属于同一线程组。一旦某个线程加入指定线程组，则将一直属于该线程组，直至该线程死亡，线程运行中不能改变它所属的线程组。
+
+`Thread`类中指定线程组的构造器：
+
+- `Thread(ThreadGroup group, Runnable target)`
+- `Thread(ThreadGroup group, Runnalbe target, String name)`
+- `Thread(ThreadGroup group, String name)`
+
+`ThreadGroup`类的构造器：
+
+- `ThreadGroup(String name)`
+- `ThreadGroup(ThreadGroup parent, String name)`
+
+可以看出线程组总会有一个字符串类型的名字，可以通过`ThreadGroup`类的`getName()`方法获得，名字不能更改。
+
+`ThreadGroup`类常用方法：
+
+- `int activeCount()`：此线程组中活动线程的数目
+- `interrupt()`：中断此线程组中的所有线程
+- `isDaemon()`：判断是否为后台线程组
+- `setDaemon(boolean daemon)`：设置成后台线程组，当线程组中再没有活动线程时自动销毁
+- `setMaxPriority(int priority)`：设置线程组的最高优先级
+- `void uncaughtException(Thread t, Throwable e)`：处理该线程组内的任意线程所抛出的未处理异常
+
+如果线程在执行过程中抛出了一个未处理异常，JVM会在结束该线程之前自动查找是否有对应的Thread.UncaughtExceptionHandler对象，如果找到该处理器对象，则会调用该对象的uncaughtException（Thread t, Throwable e)方法处理异常。
+`Thread.UncaughtExceptionHandler`是`Thread`类的一个静态内部接口，该接口只有一个方法：`void uncaughtException(Thread t, Throwable e)`。
+
+`Thread`类提供了2个方法来设置异常处理器：
+
+- `static setDefaultUncaughtExceptionHandler(Thread.UncaughtExceptionHandler eh)`：为该线程类的所有线程实例设置默认的异常处理器
+- `setUncaughtExceptionHandler(Thread.UncaughtExceptionHandler eh)`：为指定的线程实例设置异常处理器
+
+`ThreadGroup`类实现了`Thread.UncaughtExceptionHandler`接口，每个线程所属的线程组将作为默认的异常处理器。当一个线程抛出未处理异常时，JVM首先查找该异常所对应的异常处理器（`setUncaughtExceptionHandler()`方法设置的异常处理器），如果找到该异常处理器，则调用该异常处理器处理异常，否则，JVM将调用该线程所属的线程组对象的`uncaughtException()`方法来处理异常。
+
+线程组处理异常的默认流程：
+
+1. 如果该线程组有父线程组，调用父线程组的`uncaughtException()`方法来处理异常
+2. 如果该线程实例所属的线程组有默认的异常处理器（由`setDefaultUncaughtExceptionHandler()`方法设置的异常处理器），那么调用该异常处理器处理异常
+3. 如果该异常对象时`ThreadDeath`的对象，不做任何处理，否则，将异常跟踪栈的信息打印到`System.err`错误输出流，并结束该线程。
+
+异常处理器与通过`catch`捕捉异常不同，当使用`catch`捕捉异常时，异常不会向上传播给上一级调用者，但使用异常处理器处理异常后，异常仍然会传递给上一级调用者。
+
+### 线程池 ###
+线程池在系统启动时创建大量空闲的线程，程序将一个`Runnable`对象或`Callable`对象传递给线程池，线程池就会启动一个空闲的线程来执行他们的线程执行体，当执行结束后，该线程不会死亡，而是再次返回线程池中成为空闲状态，等待下一个`Runnable`对象或`Callable`对象。
+
+#### Java8改进的线程池 ####
+使用`Executors`工厂类产生线程池：
+
+- `newCachedThreadPool()`：创建带有缓存功能的线程池
+- `newFixedThreadPool(int nThreads)`：创建一个可重用的，具有固定线程数的线程池
+- `newSingleThreadPool()`：创建一个只有单线程的线程池，相当于`newFixedThreadPool(1)` 
+- `newScheduledThreadPool(int corePoolSize)`：创建具有指定线程数的线程池，可以在指定延迟后执行线程任务
+- `newSingleThreadScheduledExecutor()`：创建只有一个线程的线程池，在指定延迟后执行线程任务
+- `ExecutorService newWorkStealingPool(int parallelism)`：创建持有足够线程的线程池来支持给定的并行级别
+- `ExecutorService newWorkStealingPool()`：相当于`newWorkStealingPool(cpuCoresYouHave)`
+
+后两种方法生成的work stealing线程池都相当于后台线程池
+
+`ExecutorService`代表尽快执行线程的线程池，只要线程池中有空闲的线程，就会立即执行线程任务，提供了三个方法：
+
+- `Future<?> submit(Runnable task)`：将一个Runnable对象提交给线程池，`Future`对象在`run()`方法执行结束后返回null
+- `<T> Future<T> submit(Runnable task, T result)`：将一个`Runnable`对象提交给线程池，result显式指定线程执行结束后的返回值
+- `<T> Future<T> submit(Callable task)`：将一个`Callable`对象提交给线程池，`Future`代表`Callable`对象里`call()`方法的返回值
+
+`ScheduleExecutorService`代表可在指定延迟后或周期性地执行线程任务的线程池，有如下四个方法：
+
+- `ScheduleFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit)`：指定callable任务在delay延迟后执行
+- ScheduleFuture<?> schedule(Runnable command, long delay, TimeUnit unit)：指定command任务在delay延迟后执行
+- `ScheduleFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit)`：指定command任务将在首定延迟后开始执行，然后每隔一段时间就会执行新的任务（不管上一任务是否执行完毕）
+- `ScheduleFuture<?> scheduleAtFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit)`：创建并执行一个在给定初始延迟后首次启用的定期操作，随后在每次任务终止后，下一任务执行前都会延迟给定的时间，如果任务在任一次执行时遇到异常，就会取消后续执行，否则，只能通过程序显式取消或终止该任务
+
+用完一个线程池后，应该调用该线程池的`shutdown()`方法启动线程池的关闭序列，此时不再接受新的任务，但会把已有任务执行完毕。`shutdownNow()`方法会试图停止所有正在执行的活动任务，暂停处理正在等待的任务，并返回等待执行的任务列表。
+
+使用线程池执行线程任务的步骤：
+
+1. 调用`Executor`类的静态工厂方法创建一个`ExecutorService`对象，该对象代表一个线程池
+2. 创建`Runnable`实现类或`Callable`实现类的实例，作为线程执行任务
+3. 调用`ExecutorService`对象的`submit()`方法提交`Runnable`实例或`Callable`实例
+4. 当不再需要线程池执行任何新任务时，调用`ExecutorService`对象的`shutdown()`方法关闭线程池
+
+#### Java8增强的ForkJoinPool ####
+`ForkJoinPool`是`ExecutorService`接口的实现类，其常用构造器为：
+
+- `ForkJoinPool(int parallelism)`：创建一个包含parallelism个并行线程的`ForkJoinPool`
+- `ForkJoinPool()`：以`Runtime.availableProcessors()`方法返回值作为paralleism参数来创建`ForkJoinPool`
+
+Java8通过下面两个静态方法提供通用池功能：
+
+- ForkJoinPool commonPool()：返回一个通用池，通用池的运行状态不会受shutdown()或shutdownNow()的影响 
+- int getCommonPoolParallelism()：返回通用池的并行级别
+
+创建了`ForkJoinPool`实例后，就可以调用`ForkJoinPool`的`submit(ForkJoinTask task)`或`invoke(ForkJoinTask task)`方法来执行指定任务了。其中ForkJoinTask代表一个可以并行，合并的任务，是一个抽象类，具有两个抽象子类：`RecursiveAction`（代表没有返回值的任务）和`RecursiveTask`（代表有返回值的任务）。分解后的任务分别调用`fork()`方法开始并行执行。
+
+### 线程相关类 ###
+
+#### `ThreadLocal`类 ####
+线程局部变量就是为每一个使用该变量的线程都提供一个变量值的副本，使每一个线程都可以独立地改变自己的副本，而不会和其他线程的副本冲突。
+
+`ThreadLocal`类提供了三个public方法
+
+- `T get()`：返回在当前线程中此线程局部变量的值
+- `void remove()`：删除在当前线程中此线程局部变量的值
+- `void set(T value)`：设置在当前线程副本中此线程局部变量的值
+
+同步机制是为了同步多个线程对相同资源的并发访问，是多个线程之间进行通信的有效方式；而`ThreadLocal`是为了隔离多个线程的数据共享，从根本上避免多个线程之间对共享资源的竞争，也就不需要对多个线程进行同步。
+
+- 使用同步机制：如果多个线程之间需要共享资源，以达到线程之间的通信功能
+- 使用`ThreadLocal`：仅仅需要隔离多个线程之间的共享冲突
+
+#### 包装线程不安全的集合 ####
+在创建了普通集合之后应该立刻使用`Collections`类提供的静态方法包装成线程安全的集合：
+
+- `static <T> Collection<T> synchronizedCollection(Collection<T> c)`
+- `static <T> List<T> synchronizedList(List<T> list)`
+- `static <T> Set<T> synchronizedSet(Set<T> s)`
+- `static <K, V> Map<K, V> synchronizedMap(Map<K, V> m)`
+- `static <K, V> SortedMap<K, V> synchronizedSortedMap(Map<K, V> m)`
+- `static <T> SortedSet<T> synchronizedSortedSet(Set<T> s)`
+
+线程安全的集合分为两类：
+
+- 以Concurrent开头的集合类，如`ConcurrentHashMap`，`ConcurrentListMap`，`ConcurrentSkipListSet`，`ConcurrentLinkedQueue`和`ConcurrentLinkedDeque`
+- 以CopyOnWrite开头的集合类，如`CopyOnWriteArrayList`，`CopyOnWriteArraySet`
+
+以Concurrent开头的集合类代表了支持并发访问的集合，可以支持多个线程并发写入访问，这些写入线程的所有操作都是线程安全的，在并发写入时有较好的性能，而读取操作不必锁定。
+
+`ConcurrentLinkQueue`适合当多个线程共享访问一个公共集合时使用，不允许使用null元素
+
+默认情况下，`ConcurrentHashMap`支持16个线程并发写入，可以在创建实例时通过传入的`concurrencyLevel`构造参数设定支持的并发线程
+
+由于`ConcurrentLinkedQueue`和`ConcurrentHashMap`支持多进程并发访问，当使用迭代器遍历集合元素时，可能无法反映出创建迭代器之后所做的修改，但程序不会抛出异常
+
+在Java8中增强了的`ConcurrentHashMap`更适合作为缓存实现类使用，新增的方法大致可分为三类：
+
+- forEach系列：`forEach`, `forEachKey`, `forEachValue`, `forEachEntry`
+- search系列：`search`, `searchKeys`, `searchValues`, `searchEntries`
+- reduce系列：`reduce`, `reduceToDouble`, `reduceToLong`, `reduceKeys`, `reduceValues`
+
+使用`java.util`包下的`Collection`作为集合对象时，如果集合对象在创建了迭代器改变了集合元素，会引发`ConcurrenModificationException`异常
+
+`CopyOnWriteArraySet`的底层封装了`CopyOnWriteArrayList`，因此使用方法完全类似
+
+`CopyOnWriteArrayList`采用复制底层数组的方式来实现写操作。当执行读取操作时，线程会直接读取集合本身，无须加锁与阻塞。当执行写操作时，会在底层复制一份新的数组，并对新的数组执行写操作。适合用于读取操作远大于写操作的场景，如缓存。
+
+#### Java9新增的发布-订阅框架 ####
+该框架适合用于处理异步线程之间的流数据交换，主要使用`Flow`类的4个静态内部接口作为核心API：
+
+- `Flow.Publisher`：代表数据发布者，生产者
+- `Flow.Subscriber`：代表数据订阅者，消费者
+- `Flow.Subscription`：代表发布者和订阅者之间的连接纽带。订阅者通过调用该对象的request()方法来获取数据项，也可通过调用该对象的cancel()方法取消订阅
+- `Flow.Processor`：数据处理器，看同事作为发布者和订阅者使用
+
+`Flow.Publisher`接口定义了如下方法来注册订阅者：
+
+- `void subscribe(Flow.Subscriber<? super T> subscriber)`：程序调用此方法注册订阅者时，会触发订阅者的`onSubscribe()`方法，同时把`Flow.Subscription`对象作为参数传给`onSubcribe()`方法。如果注册失败，将触发订阅者的`onError()`方法
+
+`Flow.Subscriber`接口定义了如下方法：
+
+- `void onSubscribe(Flow.Subscription subscription)`：订阅者注册时自动触发该方法
+- `void onComplete()`：订阅结束时触发该方法
+- `void onError(Throwable throwable)`：订阅失败时触发该方法
+- `void onNext(T item)`：订阅者从发布者获取数据时触发该方法，订阅者可以通过该方法获取数据项
+
+Java9为`Flow.Publisher`提供了一个`SubmissionPublisher`实现类，程序创建`SubmissionPublisher`对象时，需要传入一个线程池作为底层支撑；或者默认使用`ForkJoinPool.commonPool()`方法来提交发布者
+
+## Chapter 17 网络编程 ##
+### 网络基础知识 ###
+通信协议通常由三部分组成：
+
+- 语义部分：决定对话的类型
+- 语法部分：决定对话的格式
+- 变换规则：决定双方的应答关系
+
+开放系统互连参考模型(OSI: Open System Interconnection)将计算机网络分成七个层次：
+
+- 应用层
+- 表示层
+- 会话层
+- 传输层
+- 网络层
+- 数据链路层
+- 物理层
+
+TCP/IP模型将计算机网络分为四个层次：
+
+- 应用层
+- 传输层
+- 网络层
+- 物理和数据链路层
+
+### IP地址和端口号 ###
+IP地址时一个32位整数，通常分为4个8位的二进制数
+
+端口是一个16位的整数，每个通信程序使用一个端口与外界交换并处理数据，同一天机器上不能有两个程序使用同一个端口。
+
+端口号从0到65535，分为3类：
+
+公认端口(Well Known Ports)：0~1023
+注册端口(Registered Ports)：1024~49151
+动态或私有端口(Dynamic and/or Private Ports)：49152~6553
+
+### Java的基本网络支持 ###
+
+#### 使用InetAddress ####
+InetAddress类代表IP地址，有两个子类：`Inet4Address`和`Inet6Address`。没有提供构造器，使用两个静态方法来获取`InetAddress`类的实例
+
+- getByName(String host)：根据主机获取对应的`InetAddress`对象
+- getByAddress(byte[] addr)：根据原始IP地址来获取对应的`InetAddress`对象
+
+`InetAddress`类常用方法：
+
+- String getCanonicalHostName()：返回此IP地址的全限定域名
+- String getHostAddress()：返回此InetAddress实例对应的IP地址字符串
+- String getHostName()：返回此IP地址的主机名
+- InetAddress getLocalHost()：返回本机IP地址对应的`InetAddress`实例
+- boolean isReachable()：是否可到达改地址
+
+#### 使用URLEncoder和URLDecoder ####
+仅包含西欧字符的普通字符串和`application/x-www-form-urlencoded MIME`字符串之间无须转换，非西欧字符串需要使用URLEncoder和URLDecoder来进行转换
+
+- String URLEncoder.encode(String s, String enc)
+- String URLDecoder.decode(String s, String enc)
+
+#### URL，URLConnection，和URLPermission ####
+URI(Uniform Resource Identifiers)代表统一资源标识符，不能用于定位资源，唯一作用就是解析；
+URL(Uniform Resource Locator)对象代表统一资源定位器，包含一个可以到达该资源的输入流，格式如下：
+
+		protocol://host:port/resourceName
+
+URL类常用方法：
+
+- String getFile()
+- String getHost()
+- String getPath()
+- String getPort()
+- String getProtocol()
+- String getQuery()
+- URLConnection openConnection()
+- String openStream()：返回一个用于读取该URL资源的InputStream
+
+一种实现多线程下载的步骤：
+
+1. 创建本地URL对象
+2. 获取指定URL对象所指向资源的大小
+3. 在本地磁盘上创建一个与网络资源具有相同大小的空文件
+4. 计算每个线程应该下载网络资源的哪个部分
+5. 依次创建，启动多个线程来下载网络资源的指定部分
+
+建立连接读取URL资源的步骤：
+
+- 通过调用URL对象的`openConnection()`方法来创建`URLConnection`对象
+- 设置`URLConnection`的参数和普通请求属性
+- 如果只是发送GET方式请求，使用`connect()`方法建立和远程资源之间的实际连接，如果需要发送POST方式的请求，需要获取`URLConnection`实例对应的输出流来发送请求参数
+- 远程资源变为可用，程序可以访问远程资源的头字段或通过输入流读取远程资源的数据。
+
+在建立和远程资源实际连接之前，可用如下方法设置请求头字段：
+
+- `setAllowUserInteraction()`
+- `setDoInput()`
+- `setDoOutput()`
+- `setIfModifiedSince()`
+- `setUserCashes()`
+
+可用如下方法设置或添加通用头字段：
+
+- `setRequestProperty(String key, String value)`
+- `addRequestProperty(String key, String value)`
+
+当远程资源可用后，可用如下方法来访问头字段和内容：
+
+- `Object getContent()`
+- `getInputStream()`
+- `getOutputStream()`
+- `String getHeaderFiled(String name)`：获取指定响应头字段的值，也可以使用下面的方法直接获取常用的响应头字段的值
+- `getContentEncoding()`
+- `getContentLength()`
+- `getContentType()`
+- `getDate()`
+- `getExpiration()`
+- `getLastModified()`
+
+当同时需要输入流读取`URLConnection`响应的内容以及输出流来发送请求参数时，一定要先使用输出流，再使用输入流。
+
+### 基于TCP协议的网络编程 ###
+#### TCP协议基础 ####
+IP协议是支持网间互联的数据包协议，提供网间连接的完善功能，包括IP数据报规定互联网络范围内的地址格式，只保证计算机能发送和接收分组数据。
+
+TCP协议负责收集信息包，并将其按适当的次序放好传送，接收端收到后再将其正确地还原。TCP协议保证了数据包在传送中准确无误。TCP协议使用重发机制，当一个通信实体发送一个消息给另一个通信实体后，需要收到另一个通信实体的确认信息，如果没有收到另一个通信实体的确认信息，则会再次重发刚才发送的信息。
+
+#### 使用ServerSocket创建TCP服务器端 ####
+在两个通信实体建立了虚拟链路之前，必须有一个通信实体主动接收来自其他通信实体的连接请求，这个通信实体在Java中以ServerSocket类代表。ServerSocket类的对象用于监听来自客户端的Socket连接，如果没有连接，将一直处于等待状态。常用方法包括：
+
+- Socket accept()：如果接收到一个客户端的Socket连接请求，将返回一个与客户端Socket对应的Socket，否则该方法将一直处于等待状态，线程也被阻塞。
+
+构造器：
+
+- ServerSocket(int port)
+- ServerSocket(int port, int backlog)：增加一个用来改变连接队列长度的参数backlog
+- ServerSocket(int port, int backlog, InetAddress localAddr)：在机器存在多个IP地址的情况下，使用localAddr参数指定将ServerSocket绑定到指定的IP地址
+
+#### 使用Socket进行通信 ####
+构造器：
+
+- Socket(InetAddress/String remoteAddress, int port)：默认使用本地主机的默认IP地址，使用系统自动分配的端口
+- Socket(InetAddress/String remoteAddress, int port, InetAddress localAddr, int localPort)
+
+Socket对象获取输入输出流的方法：
+
+- InputStream getInputStream()：程序通过返回的输入流从Socket中取出数据
+- OutputStream getOutputStream()：程序通过返回的输出流向Socket中输出数据
+
+这里的输入输出都是从内存而不是流的角度来判断的
+
+Socket提供了设置超时时长的方法：
+
+- setSoTimeout(int timeout)
+
+一旦超时就会抛出SocketTimeoutException异常。值得注意的是，Socket类并没有提供指定超时时长的构造器，程序必须先创建一个无连接的Socket对象，再调用Socket的带有超时时长参数的`connect()`方法来连接远程服务器。
+
+#### 加入多线程 ####
+服务器端应该为每个Socket单独启动一个线程，每个线程负责与一个客户端进行通信。客户端也应该单独启动一个线程负责读取服务器端数据。
+
+## Chapter 18 类加载机制和反射 ##
+
+### 类的加载，连接和初始化 ###
+#### JVM和类 ####
+当Java命令运行某个Java程序时，也就启动了与一个Java虚拟机进程，该程序启动的所有线程都处于该虚拟机进程里。同一个JVM的所有线程，所有变量都处于同一个进程内，使用该JVM进程的内存区。
+
+JVM进程在以下情况被终止：
+
+- 程序运行到最后正常结束
+- 程序运行到使用'System.exit()'或'Runtime.getRuntime().exit()'代码处结束程序
+- 程序执行过程中遇到未捕获的异常或错误而结束
+- 程序所在平台强制结束了JVM进程
+
+JVM进程被终止后，该进程在内存中的状态将会丢失。2个JVM进程间不会共享数据。
+
+#### 类的加载 ####
+当程序主动使用某个类时，如果该类还未被加载到内存中，系统会通过加载，连接，初始化三个步骤来对该类初始化。系统也可以预先加载某些类。
+
+类的加载指的是将类的class文件读入内存，并为之创建一个java.lang.Class对象。
+
+类的加载由类加载器完成，JVM提供的类加载器称为系统类加载器。可以通过继承ClassLoader基类来创建自己的类加载器。
+
+类的class文件通常来源于：
+
+- 本地文件系统中的class文件
+- JAR包中的class文件
+- 通过网络加载
+- 把一个Java源文件动态编译并加载
+
+#### 类的连接 ####
+类的连接负责把类的二进制数据合并到JRE中，分为三个阶段：
+
+- 验证：检验被加载的类是否有正确的内部结构，并和其他类协调一致
+- 准备：负责为类的类变量分配内存，并设置默认初始值
+- 解析：将类的二进制数据中的符号引用替换成直接饮用
+
+#### 类的初始化 ####
+类的初始化是由虚拟机负责通过2中方式对类变量进行初始化：
+
+- 声明类变量时指定初始值
+- 使用静态初始化块为类变量指定初始值
+
+JVM将按照这些语句在程序中的排列顺序依次执行。
+
+JVM初始化一个类的步骤：
+
+1. 假如这个类还没有被加载和连接，则程序先加载并连接该类
+2. 如果这个类的直接父类还没有被初始化，则先初始化其直接父类
+3. 如果类中有初始化语句，则系统依次执行这些初始化语句
+
+所以JVM最先初始化的总是`java.lang.Object`类，而且会保证一个类的直接父类和间接父类都会被初始化。
+
+#### 类的初始化时机 ####
+当Java程序首次通过下面6种方式来使用某个类或接口时，系统会初始化该类或接口：
+
+- 创建类的实例，包括使用`new`关键字，通过反射，或通过反序列化的方法来创建实例
+- 调用某个类的类方法
+- 调用某个类或接口的类变量，或为该类变量赋值
+- 使用反射方式来强制创建某个类或接口对应的`java.lang.Class`对象，如`Class.forname("aClassName")`
+- 初始化某个类的子类
+- 直接使用java.exe命令来运行某个类
+
+对于一个final类型的类变量，如果该变量的值在编译期间就可以确定，则该变量相当于一个常量，编译期间编译器会用直接量替换所有出现该变量的地方，因此如果程序只使用某个类的这种类型的变量，该类不会被初始化。
+
+当使用ClassLoader类的loadClass()方法来加载某个类时，该方法只是加载该类，并不会执行该类的初始化，使用Class的forName()方法才会导致强制初始化该类。
+
+### 类加载器 ###
+类加载器负责将类的class文件加载到内存，并生成相应的`java.lang.Class`对象。
+
+在JVM中确保所加载的类的唯一性的方法：使用类的全限定类名（包含了包名的类名）和其类加载器作为唯一标识。这意味着被两个不同的类加载器加载的同一个类在JVM中被当作是不同的两个类。
+
+当JVM启动时，会形成由三个类加载器组成的初始类加载器层次结构：
+
+- Bootstrap ClassLoader：引导类加载器/根类加载器，负责加载Java的核心类，并不是由Java实现的，因此并不是ClassLoader抽象类的实现类。
+- Extension ClassLoader：扩展类加载器，是ClassLoader抽象类的实现类PlatformClassLoader类的实例，但从类加载器层次的角度看，其父类是根类加载器
+- System ClassLoader：系统类加载器，是ClassLoader抽象类的实现类AppClassLoader类的实例
+
+JVM的类加载机制主要有三种：
+
+- 全盘负责：当一个类加载器负责加载某个类时，该类所依赖的和引用的其他类也将由该类加载器负责载入，除非显式使用另一个类加载器来载入。
+- 父类委托：先尝试让parent类加载器加载该类，如果无法加载再尝试从自己的类路径中加载该类
+- 缓存机制：保证所有已经加载过的类都会被缓存，当程序中需要使用某个类时，类加载器先在缓存区中搜寻该类，如果找不到再加载该类的类文件并转换为Class对象，放入缓存区中
+
+类加载器之间的父子关系并不是类继承上的父子关系，而是类加载器实例之间的关系。即由父到子为：根类加载器<-扩展类加载器<-系统类加载器<-用户类加载器。
+
+类加载器加载类文件的步骤：
+
+1. 检测此类文件是否被载入过，即是否能在缓存区中找到该类，如果有则直接跳到第8步
+2. 如果父类加载器不存在（即要么父类加载器是根类加载器，或者本身就是根类加载器），跳到第4步
+3. 请求使用父类加载器载入目标类，如果成功就直接跳到第8步
+4. 请求使用根类加载器载入目标类，如果成功就直接跳到第8步
+5. 当前类加载器尝试寻找class文件，如果找到则执行第6步，找不到就跳到第7步
+6. 从文件中载入class文件，成功就跳到第8步
+7. 抛出`ClassNotFoundException`异常
+8. 返回相应的`java.lang.Class`对象
+
+#### 创建并使用自定义的类加载器 ####
+JVM中除根类加载器外的所有类加载器都是`ClassLoader`子类的实例。
+
+`ClassLoader`有两个关键方法：
+
+- loadClass(String name, boolean resolve)
+- findClass(String name)
+
+`loadClass()`方法执行步骤如下：
+
+1. 用findLoadedClass(Sting)来检查是否已经加载过此类，是就直接取出返回
+2. 在父类加载器上调用loadClass()方法，如果父类加载器为null，就使用根类加载器加载
+3. 调用findClass(String)方法查找类
+
+实现自定义的类加载器需要重写以上两个方法，通常推荐重写`findClass()`方法而不是`loadClass()`方法。因为可以避免覆盖上述第1,2步中的默认类加载器的父类委托，缓冲机制两种策略
+
+`ClassLoader`类中还有一个重要的final方法：
+
+- Class defineClass(String name, byte[] b, int off, int len)：负责将指定类的字节码文件读入到字节数组b中并将他转换为Class对象。
+
+`ClassLoader`的其他方法：
+
+- findSystemClass(String name)：从本地文件系统装入文件，如果存在，就使用`defineClass()`方法将字节码文件转换为`Class`对象
+- static getSystemClassLoader()：返回系统类加载器
+- getParent()：获取该类加载器的父类加载器
+- resolveClass(Class<?> c)：连接指定的类
+- findLoadedClass(String name)：如果此虚拟机已加载了名为name的类，则直接返回该类对应的Class对象，否则返回null
+
+使用自定义的类加载器可以：
+
+- 执行代码前自动验证数字签名
+- 根据用户提供的密码解密代码，避免反编译
+- 根据用户需求来动态地加载类
+- 根据应用需求把其他数据以字节码的形式加载到应用中
+
+#### URLClassLoader类 ####
+Java为`ClassLoader`提供了一个URLClassLoader实现类，这也是系统类加载器和扩展类加载器的父类。他有两个构造器：
+
+- URLClassLoader(URL[] urls)
+- URLClassLoader(URL[] urls, ClassLoader parent)
+
+### 通过反射查看类信息 ###
+
+解决编译时类型和运行时类型不同的方法：
+
+- 如果知道编译时和运行时的类型的具体信息，可以使用`instanceof`运算符进行判断，再利用强制类型转换将其转换为运行时类型
+- 如果编译时无法知道运行时类型的具体类型，则只能利用反射
+
+#### 获得Class对象 ####
+Java程序中获得Class对象的方法：
+
+- 使用`Class`类的`forName(String className)`类方法，其中`className`是带完整包名的全限定类名，此方法可能抛出`ClassNotFoundException`异常
+- 调用某个类的class属性来获取该类对应的Class对象，推荐使用
+- 调用某个对象的`getClass()`方法
+
+#### 从Class中获得信息 ####
+
+用于获取构造器的4个方法：
+
+- Constructor<T> getConstructor(Class<?>... parameterType)：返回带有指定形参列表的public构造器
+- Constructor<?>[] getConstructors()：返回所有public构造器
+- Constructor<T> getDeclaredConstructor(Class<?>... parameterType)：返回带有指定形参列表的所有构造器，无论权限
+- Constructor<?>[] getDeclaredConstructors()：返回所有权限的构造器
+
+
+用于获取方法的4个方法：
+
+- Method<T> getMethod(String name, Class<?>... parameterType)：返回带有指定形参列表的public方法
+- Method<?>[] getMethods()：返回所有public方法
+- Method<T> getDeclaredMethod(String name, Class<?>... parameterType)：返回带有指定形参列表的所有方法，无论权限，但仅限在本类中声明的或者通过实现接口获得的方法，通过继承获得的方法不算在内。
+- Method<?>[] getDeclaredMethods()：返回所有权限的方法，但仅限在本类中声明的或者通过实现接口获得的方法，通过继承获得的方法不算在内。
+
+只能通过一个方法的方法名和其形参类型（不是形参名称）来唯一确定一个方法。
+
+
+用于获取成员变量的4个方法：
+
+- Filed getFiled(String name)：返回带有指定形参列表的public成员变量
+- Filed[] getFileds()：返回所有public成员变量
+- Filed getDeclaredFiled(String name)：返回带有指定形参列表的所有成员变量，无论权限，但仅限在本类中声明的成员变量，通过继承或者通过实现接口获得的成员变量不算在内。
+- Filed[] getDeclaredFileds()：返回所有权限的成员变量，但仅限在本类中声明的成员变量，通过继承或者通过实现接口获得的成员变量不算在内。
+
+注意通过`getDeclaredFiled()`和`getDeclaredMethod()`分别获得成员变量和方法时对通过接口获得的成员处理方法的不同：
+
+可以获取通过接口声明的方法
+无法获取通过接口声明的成员变量
+
+用于获取Annotation的方法：
+
+- <A extends Annotation> A getAnnotation(Class<A> annotationClass)
+- <A extends Annotation> A getDeclaredAnnotation(Class<A> annotationClass)
+- Annotation[] getAnnotations()
+- Annotation[] getDeclaredAnnotations()
+- <A extends Annotation> A[] getAnnotationsByType(Class<A> annotationClass)：用于重复注解
+- <A extends Annotation> A[] getDeclaredAnnotationsByType(Class<A> annotationClass)：用于重复注解
+
+用于获取内部类，外部类的方法：
+
+- Class<?>[] getDeclaredClasses()：返回全部的内部类
+- Class<?> getDeclaringClass()：返回所在的外部类
+
+用于获取所实现的接口：
+
+- Class<?>[] getInterfaces()
+
+用于获取所继承的父类：
+
+- Class<? super T> getSuperClass()
+
+用于获取类的修饰符，所在包，类名等基础信息：
+
+- int getModifiers()：返回的整数需要使用Modifier工具类的方法来解码
+- Package getPackage()
+- String getName()：带包名
+- String getSimpleName()：只有类名
+
+用于判断类的类型的方法：
+
+- boolean isAnnotation()
+- boolean isAnnotationPresent(Class<? extends Annotation> annotationClass)
+)
+- boolean isAnonymousClass()
+- boolean isArray()
+- boolean isEnum()
+- boolean isInterface()
+- boolean isInstance(Object obj)：完全可以替代`instanceof`操作符
+
+对于只在源代码级别保留的注解（RentionPolicy.SOURCE），使用运行时获得的Class对象无法访问到该注解对象
+
+#### Java8新增的方法参数反射 ####
+Method和Constructor是Java8在`java.lang.reflect`包中新增的`Executable`抽象基类的子类。提供了2个方法来获得方法形参：
+
+- int getParameterCount()：返回形参的个数
+- Parameter[] getParameters()：返回所有形参
+
+`Parameter`类代表了方法的形参，每个实例代表一个形参，有如下常用方法：
+
+- getModifiers()：返回修饰该形参的修饰符
+- String getName()：返回形参名
+- Type getParameterizedType()：返回带泛型的形参类型
+- Class<?> getType()：返回形参类型
+- boolean isNamePresent()：该类的class文件中是否包含了方法的形参信息
+- boolean isVarArgs()：判断该参数是否为个数可变的形参
+
+使用默认javac命令编译出的class文件不包含方法的形参信息，必须为javac命令添加`-parameters`选项
+
+### 使用反射生成并操作对象 ###
+
+通过Class对象可以获得该类的方法（Method对象），构造器（Constructor对象），成员变量（Filed对象），这三个类都处于`java.lang.reflec`包下，并实现了`java.lang.reflect.Member`接口。
+
+#### 创建对象 ####
+通过Class对象获得指定的Constructor对象，再调用Constructor对象的newInstance()方法来创建该类的实例。通常只有在编译时不知道需要创建什么类型的对象，需要在运行时动态地创建某个类的时候才会考虑使用反射。
+
+#### 调用方法 ####
+通过Class对象的`getMethods()`或`getMethod()`方法获得全部方法或指定方法，每个Method对象对应一个方法，再调用Method对象的`invoke()`方法来执行该方法
+
+- Object invoke(Object obj, Object... args)：obj是执行该方法的实例，args是执行该方法时传入的实参。
+
+当通过Method的`invoke()`方法来执行相应的方法时，要求程序必须有调用该方法的权限。如果程序确实需要调用某个对象的private方法，可以先调用Method对象的`setAccessible()`方法：
+
+- setAccessible(boolean flag)：设置是否取消Java的访问权限检查。此方法`AccessibleObject`接口中定义，所以Method，Constructor，Filed都可以使用。
+
+#### 访问成员变量 ####
+通过Class对象的`getFileds()`或`getFiled()`方法获取全部public的成员变量或指定的public成员变量
+
+- Xxx getXxx(Object obj)
+- setXxx(Object obj, Xxx value)
+- set(Object obj, Object value)
+
+#### 操作数组 ####
+在`java.lang.reflec`包下的Array类的对象可以代表所有类型的数组。
+
+static Object newInstance(Class<?> componentType, int... length)
+static Xxx getXxx(Object array, int index)
+static Object get(Object array, int index)
+static void setXxx(Object array, int index, Xxx val)
+static void set(Object array, index, Object val)
+
+### 使用反射生成JDK动态代理 ###
+#### 使用Proxy和InvocationHandler创建动态代理 ####
+如果在程序中为一个或多个接口动态地生成实现类，就可以使用Proxy来创建动态代理类；
+如果需要为一个或多个接口动态地创建实例，也可以使用Proxy来创建动态代理实例。
+
+- static Class<?> getProxyClass(ClassLoader loader, Class<?>... Interfaces)
+- static Object newProxyInstance(ClassLoader loader, Class<?>[] interfaces, InvocationHandler h)
+
+执行代理对象的每个方法时都会被替换执行InvocationHandler对象的invoke方法。系统生成的每个代理对象都有一个与之关联的InvocationHandler对象。
+
+- proxy：代表动态代理对象
+- method：代表正在执行的方法
+- args：代表调用目标方法时传入的参数
+
+#### 动态代理和AOP ####
+JDK动态代理只能为接口创建动态代理
+
+AOP(Aspect Orient Programming)面向切面编程：AOP代理可以代替目标对象，AOP代理包含了目标对象的全部方法，AOP代理中的方法月目标对象的方法存在差异，AOP代理里的方法可以在执行目标方法之前，之后插入一些通用处理。
+
+### 反射和泛型 ###
+String.class的类型就是Class<String>。如果Class对应的类型未知，则使用Class<?>
+
+使用`getType()`方法获取非泛型类型，使用`getGenericType()`方法获取带泛型的类型，然后将Type对象强制转换为ParameterizedType对象，有以下两个方法：
+
+getRawType()：返回没有泛型信息的原始类型
+getActualTypeArguments()：返回泛型参数的类型
+
+Type也是`java.lang.reflect`包下的一个接口，代表所有类型的公共公共高级接口。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
