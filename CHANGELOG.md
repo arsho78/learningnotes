@@ -1,5 +1,9 @@
 # learning notes changelog #
 
+## 2019-03-13 ##
+### Modified ###
+- ***Effective Java*** 初步完成全部校验
+
 ## 2019-03-12 ##
 ### Added ###
 - ***Effective Java*** 技巧49-56
@@ -27,6 +31,14 @@
 ## 2019-03-05 ##
 ### Added ###
 - ***Effective Java*** 技巧18-20
+
+## 2019-03-01 ##
+### Added ###
+- ***Effective Java*** 技巧86-90
+
+## 2019-02-28 ##
+### Added ###
+- ***Effective Java*** 技巧78-85
 
 ## 2019-02-25 ##
 ### Added ###
