@@ -73,12 +73,6 @@ The install process may take some time. Please wait until it is complete.
 
 8. refer to `http://localhost:631` in a web browser to manage the printer
 
-
-## Install git ##
-
-		apt install git
-		
-
 ## Install universal-ctags ##
 
 		git clone https://github.com/universal-ctags/ctags
@@ -86,6 +80,67 @@ The install process may take some time. Please wait until it is complete.
 		./autogen.sh
 		./configure --prefix=/usr/local
 		make && sudo make install
+
+## Install git ##
+
+		apt install git
+
+### 安装node.js和npm ###
+
+		//安装nvm（nodejs version manager） 
+		curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | bash
+		//验证安装
+		command -v nvm
+		//安装nodejs，"node"直接引用最新的nodejs版本
+		nvm install node
+
+### 安装git工具 ###
+
+		//安装commitizen
+		npm install -g commitizen
+		//安装commitizen配件，具体配件列表参阅它的git网址
+		npm install -g cz-conventional-changelog
+		//配置使用commitizen
+		echo '{ "path": "cz-conventional-changelog" }' > ~/.czrc
+		//安装commitlint
+		npm install -g @commitlint/cli @commitlint/config-conventional
+		//配置commitlint
+		echo "module.exports = {extends: ['@commitlint/config-conventional']}" > ~/commitlint.config.js
+		//验证commitlint安装成功
+		echo "should fail" | commitlint
+		echo "fix(server): should succeed" | commitlint
+		//配置git hooks
+		mkdir -p ~/hooks
+		git config --global core.hooksPath /path/to/my/hooks //此例是~/hooks
+		//创建能够执行的提交消息的脚本
+		touch /path/to/my/hooks/commit-message
+		chmod a+x /path/to/my/hooks/commit-message
+		//将如下内容拷贝至刚创建的脚本中
+
+		#! /bin/bash
+
+		# run any local commit-msg hook first
+		if test -e ./.git/hooks/commit-msg
+			then
+				sh ./.git/hooks/commit-msg
+		fi
+
+		cat $1 | commitlint
+
+		if [ $status != 0 ]
+			then
+			  exit 1
+		fi
+
+		exit 0
+
+		//安装生成CHANGELOG.md的工具
+		npm install -g conventional-changelog-cli
+		cd my-project
+		//生成augular格式的CHANGELOG
+		conventional-changelog -p angular -i CHANGELOG.md -s
+
+
 
 ## 安装vim ##
 
@@ -680,3 +735,7 @@ Debian 9 系统必须是 64 位系统，Chrome 没有 32 位系统的软件包�
 
 解决编辑窗口在使用autokey或切换窗口后失去焦点的方法：
 Help->Edit customized properties, 在打开的properties设置文件中输入：suppress.focus.stealing=false
+
+		
+
+

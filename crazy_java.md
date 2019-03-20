@@ -1,6 +1,6 @@
 ## Chapter 3 数据类型和运算符 ##
 
-javadoc工具默认只处理*public*或*protected*修饰的类, 接口, 方法, 成员变量, 构造器和内部类之前的文档注释.
+javadoc工具默认只处理*public*或*protected*修饰的类, 接口, 方法, 成员变量, 构造器和内部类之前的文档注释。
 
 只有对处于多个包下的源文件生成API文档时，才会有概述页面。
 
@@ -2945,17 +2945,17 @@ URL类常用方法：
 
 一种实现多线程下载的步骤：
 
-1. 创建本地URL对象
-2. 获取指定URL对象所指向资源的大小
-3. 在本地磁盘上创建一个与网络资源具有相同大小的空文件
-4. 计算每个线程应该下载网络资源的哪个部分
-5. 依次创建，启动多个线程来下载网络资源的指定部分
+1. 创建URL对象；
+2. 获取指定URL对象所指向资源的大小；
+3. 在本地磁盘上创建一个与网络资源具有相同大小的空文件；
+4. 计算每个线程应该下载网络资源的哪个部分；
+5. 依次创建，启动多个线程来下载网络资源的指定部分。
 
 建立连接读取URL资源的步骤：
 
-- 通过调用URL对象的`openConnection()`方法来创建`URLConnection`对象
-- 设置`URLConnection`的参数和普通请求属性
-- 如果只是发送GET方式请求，使用`connect()`方法建立和远程资源之间的实际连接，如果需要发送POST方式的请求，需要获取`URLConnection`实例对应的输出流来发送请求参数
+- 通过调用URL对象的`openConnection()`方法来创建`URLConnection`对象；
+- 设置`URLConnection`的参数和普通请求属性；
+- 如果只是发送GET方式请求，使用`connect()`方法建立和远程资源之间的实际连接，如果需要发送POST方式的请求，需要获取`URLConnection`实例对应的输出流来发送请求参数；
 - 远程资源变为可用，程序可以访问远程资源的头字段或通过输入流读取远程资源的数据。
 
 在建立和远程资源实际连接之前，可用如下方法设置请求头字段：
@@ -3020,10 +3020,214 @@ Socket提供了设置超时时长的方法：
 
 - setSoTimeout(int timeout)
 
-一旦超时就会抛出SocketTimeoutException异常。值得注意的是，Socket类并没有提供指定超时时长的构造器，程序必须先创建一个无连接的Socket对象，再调用Socket的带有超时时长参数的`connect()`方法来连接远程服务器。
+在使用Socket进行读，写操作完成之前超出该时间限制就会抛出`SocketTimeoutException`异常。值得注意的是，`Socket`类并没有提供指定超时时长的构造器，程序必须先创建一个无连接的`Socket`对象，再调用`Socket`的带有超时时长参数的`connect()`方法来连接远程服务器。
 
 #### 加入多线程 ####
 服务器端应该为每个Socket单独启动一个线程，每个线程负责与一个客户端进行通信。客户端也应该单独启动一个线程负责读取服务器端数据。
+
+#### 半关闭的Socket ####
+Socket类提供了了两个半关闭的方法，分别用于关闭输入流和输出流，表示完成输入或输出。关闭其中的一个不会影响另外一个的操作。
+
+- shutdownInput()
+- shutdownOutput()
+
+注意，即使通过调用这两个方法将socket的输入和输出流全部关闭，Socket实例却没有关闭，只是不能输入，也不能输出。
+
+还有两个方法用于判断是否已经关闭相应的流：
+
+- isInputShutdown()
+- isOutputShutdown()
+
+当使用Socket的shutdownOutput和shutdownInput关闭了输出和输入流后，该Socket将无法再次打开输出，输入流，因此这种做法只适合一站式的通信协议，如HTTP协议，当客户端连接到服务器后，开始发送请求数据，发送完毕后无须再次发送数据，只需要读取服务器端的相应数据即可，当读取完毕后，该Socket连接也被关闭了。
+
+#### 使用NIO实现非阻塞Socket通信 ####
+按照POSIX（Portable Operating System Interface of UNIX，这个标准定义了操作系统应该为应用程序提供的接口标准）可以将IO分为两类：同步IO和异步IO。对于IO的操作可以分成两步：1. 程序发出IO请求；2. 完成实际的IO操作。阻塞IO和非阻塞IO都是针对第一步划分的，如果发出IO请求会阻塞线程，就是阻塞IO；如果发出请求没有阻塞线程就是非阻塞IO；同步IO和异步IO的区别在第二步：如果实际的IO操作由操作系统完成，再将结果返回给应用程序，这就是异步IO；如果实际的IO需要应用程序本身取执行，会阻塞线程，那就是同步IO。传统IO和基于Channel的非阻塞IO其实都是同步IO。
+
+非阻塞IO有几个关键抽象：Selector，SelectableChannel，SelectionKey
+
+Selector是SelectableChannel对象的多路复用器，所有希望采用非阻塞方式通信的Channel都应该注册到Selector对象。Selector可以同时监控多个SelectableChannel的IO状况，是非阻塞IO的核心。
+
+SelectionKey对象代表了SelectableChannel和Selector之间的注册关系。一个Selector实例有三个SelectionKey集合：
+
+- 所有的SelectionKey集合：代表了所有注册在该Selector上的Channel，该集合可以通过keys()方法返回。
+- 被选择的SelectionKey集合：代表了所有可通过select()方法获取的，需要进行IO处理的Channel，该集合可以通过selectedKeys()返回。
+- 被取消的SelectionKey集合：代表了所有被取消注册关系的Channel，在下一次执行select()方法时，这些Channel对应的SelectionKey会被彻底删除，系统通常无须直接访问该集合。
+
+SelectableChannel代表可以支持非阻塞IO操作的Channel对象，可调用它的register()方法将其注册到指定Selector上。当该Selector上的某些SelectableChannel上有需要处理的IO操作时，程序可以调用Selector实例的select()方法获取它们的数量，并可以通过selectedKeys()方法返回他们对应的SelectionKey集合--通过该集合就可以获取所有有需要进行IO处理的SelectableChannel集。
+
+SelectableChannel对象支持阻塞和非阻塞两种模式（默认是阻塞模式），下面两个方法分别用来设置和返回模式：
+
+- SelectableChannel configureBlocking(boolean block)
+- boolean isBlocking()
+
+不同的SelectableChannel支持的操作不一样，在SelectionKey中，用静态常量定义了4种IO操作：`OP_READ(1)`，`OP_WRITE(4)`，`OP_CONNECT(8)`，`OP_ACCEPT(16)`，由于它们任意2个，3个，4个相加的结果总是互不相同，所以系统可以根据validOps()方法的返回值确定该SelectableChannel支持的操作。
+
+此外，SelectableChannel提供了几个方法获取它的注册状态：
+
+- boolean isRegistered()：返回该Channel是否已注册在一个或多个Selector。
+- SelectionKey keyFor(Selector sel)：返回该Channel与Selector sel之间的注册关系，如果不存在注册关系，则返回null。
+
+Selector提供了一系列和select()相关的方法：
+
+- int select()：监控所有注册的Channel，返回有需要处理的IO操作的Channel的数量，并将对应的SelectionKey加入被选择的SelectionKey集合中。
+- int select(long timeout)
+- int selectNow()：执行一个立即返回的select()操作，相对于无参数的select方法，此方法不会阻塞线程。
+- Selector wakeup()：是一个还未返回的select()方法立刻返回。
+
+ServerSocketChannel支持非阻塞操作，对应于java.net.ServerSocket类，支持`OP_ACCEPT`操作，也提供了accept()方法，功能相当于ServerSocket的accept方法。
+
+SocketChannel支持非阻塞操作，对应于java.net.Socket类，支持`OP_CONNECT`，`OP_READ`和`OP_WRITE`操作。这个类还实现了ByteChannel接口，ScatteringByteChannel接口和GatheringByteChannel接口，可以直接通过SocketChannel来读写ByteBuffer对象。
+
+服务器上的所有Channel（包括ServerSocketChannel和SocketChannel）都需要向Selector注册，而该Selector则负责见识这些Socket的IO状态，当其中任意一个或多个Channel具有可用的IO操作时，该Selector的select()方法就会返回大于0的整数，其值就是该Selector上有多少个Channel具有也用的IO操作，并提供了selectedKeys()方法来返回这些Channel对应的SelectionKey集合。当Selector上注册的所欲的Channel都没有需要出来的IO操作时，select()方法将被阻塞，调用该方法的线程被阻塞。
+
+ServerSocketChannel不能像ServerSocket一样直接指定监听的端口，而且也不能使用已有的ServerSocket的getChannel()方法来获取ServerSocketChannel的实例。程序必须先调用它的open()静态方法返回一个ServerSocketChannel的实例，再使用它的bind()方法指定它在某个端口监听。
+
+		//使用open方法创建一个未绑定的ServerSocketChannel实例
+		ServerSocketChannel server = ServerSocketChannel.open();
+		//将该ServerSocketChannel实例绑定到指定的IP地址
+		InetScoketAddress isa = new InetScoketAddress("127.0.0.1", 30000);
+		server.bind(isa):
+
+使用NIO来实现服务器端时，无须使用List来保存服务器端所有的SocketChannel，因为所有的SocketChannel都已注册到指定的Selector对象。
+
+#### 使用Java7的AIO实现非阻塞通信 ####
+Java7的NIO.2为AIO提供了2个以Asynchronous开头的接口和3个实现类。
+
+AsynchronousServerSocketChannel是一个负责监听的Channel，使用它需要三步：
+
+1. 调用它的open()静态方法创建一个未监听端口的AsynchronousServerSocketChannel。
+2. 调用AsynchronousServerSocketChannel的bind()方法指定该Channel在指定地址，端口监听。
+3. 调用AsynchronousServerSocketChannel的accept()方法接受连接请求。
+
+AsynchronousServerSocketChannel的open方法有两个版本：
+
+- open()
+- open(AsynchronousChannelGroup group)
+
+AsynchronousChannelGroup是异步Channel的分组管理器，可以实现资源共享。创建AsynchronousChannelGroup需要传入一个ExecutorService，也就是说，他会绑定一个线程池，该线程池负责2个任务：处理IO事件和触发CompletionHandler。
+
+AIO的AsynchronousServerSocketChannel和AsynchronousSocketChannel都允许使用线程池进行管理，因此创建AsynchronousSocketChannel对象时也可以传入AsynchronousChannelGroup对象进行分组管理。
+
+accept方法有两个版本：
+
+- Future<AsynchronousSocketChannel> accept()：如果程序需要连接成功后返回的AsynchronousSocketChannel，则应该调用该方法返回的Future对象的get方法，但该方法会阻塞线程。
+- <A> void accept(A attachment, CompletionHandler<AsynchronousSocketChannel, ? super A> handler)：接受来自客户端的请求，连接成功或失败都会触发CompletionHandler对象里相应的方法。
+
+CompletionHandler是一个接口，定义了2个方法：
+
+- completed(V result, A attachment)：当IO操作成功完成时触发，result代表IO操作返回的对象，attachment代表发起IO操作时传入的参数。
+- failed(Throwable exc, A attachment)：当IO操作失败时触发，exc代表操作失败引发的异常或错误，attachment代表发起IO操作时传入的参数。
+
+异步IO的实际IO操作是交给操作系统完成的，因此程序并不清楚异步IO操作什么时候能够完成。
+
+AsynchronousSocketChannel的用法：
+
+1. 调用open()静态方法创建AsynchronousSocketChannel对象（同时也可以指定一个AsynchronousChannelGroup对象作为分组管理器）；
+2. 调用AsynchronousSocketChannel的connect方法连接到指定IP地址，指定端口的服务器；
+3. 调用AsynchronousSocketChannel的read，write方法进行读写。
+
+AsynchronousSocketChannel的read，write，connect方法都有两个版本，一个返回Future类型的对象，一个需要传入CompletionHandler参数。
+
+### 基于UDP协议的网络编程 ###
+#### UDP协议基础 ####
+UDP协议，用户数据报协议（User Datagram Protocol）是一种不可靠的网络协议，也是一种面向非连接的协议。面向非连接的协议指的是在正式通信前不必与对方先建立连接，不管对方状态就直接发送。对方是否能收到这些数据内容，UDP协议无法控制。因此UDP协议只适用于一次只传送少量数据，对可靠性要求不高的应用环境。
+
+UDP协议的主要作用是完成网络数据流和数据报之间的转换：
+
+- 在信息的发送端，UDP协议将网络数据流封装成数据报，然后将数据报发送出去；
+- 在信息的接收端，UDP协议将数据报转换成实际数据内容。
+
+UDP协议在通信实例的两端各建立一个Socket，但这两个Socket之间并没有虚拟链路，这两个Socket只是发送，接受数据包对象。Java提供了DatagramSocket对象作为基于UDP协议的Socket，使用DatagramPacket代表发送，接受的数据。对于基于UDP协议的通信双方，没有所谓的客户端和服务器端的概念，但通常把固定IP地址，固定端口的DatagramSocket对象所在的程序称为服务器，因为该DatagramSocket可以主动接收数据。
+
+TCP协议和UDP协议的简单对比：
+
+- TCP协议：可靠，传输大小无限制，但是需要连接建立时间，差错控制开销大；
+- UDP协议：不可靠，差错控制开销较小，传输大小限制在64KB以下，不需要建立连接。
+
+#### 使用DatagramSocket发送，接受数据 ####
+DatagramSocket的唯一作用就是发送和接受数据报。
+
+常用的三个构造器：
+
+- DatagramSocket()：绑定到本机默认地址，随机选择端口；
+- DatagramSocket(int port)：绑定到本机默认地址，指定端口；
+- DatagramSocket(int port, InetAddress laddr)：绑定到指定地址和端口。
+
+接受，发送数据报的方法：
+
+- receive(DatagramPacket p)
+- send(DatagramPacket p)
+
+使用DatagramSocket发送数据报时并不知道需要发送的目的地，由DatagramPacket自身决定数据报的目的地。
+
+常用的DatagramPacket的构造器：
+
+- DatagramPacket(byte[] buf, int length)：以空数组创建对象，用于接受数据；
+- DatagramPacket(byte[] buf, int offset, int length)：以空数组创建对象，用于接受数据，接收到的数据从offset开始放入buf数组中，最多方length个字节；
+- DatagramPacket(byte[] buf, int length, InetAddress addr, int port)：以包含数据的数组创建对象，同时指定了发送目的地的IP地址和端口；
+- DatagramPacket(byte[] buf, int offset, int length, InetAddress addr, int port)：同上，但指定发送数组从offset开始，总共length个字节。
+
+在接收数据之前，应该采用前两个构造器生成一个DatagramPacket对象，给出接收数据的字节数组及其长度。然后调用DatagramSocket的receive方法来等待数据报的到来，该方法将一直等待（会阻塞调用该方法的线程），直到收到一个数据报为止。
+
+在发送数据之前，调用后两个构造器构造DatagramSocket对象，此时的字节数组里存放了想要发送的数据。除此之外，还要给出完整的目的地址，包括IP地址和端口号。
+
+DatagramPacket提供了三个方法来获取发送者的IP地址和端口：
+
+- InetAddress getAddress()：接收数据时，返回数据报来源主机的IP地址；发送数据时，返回数据报目的地主机的IP地址。
+- int getPort()：接收数据时，返回数据报来源主机的端口；发送数据时，返回数据报目的地主机的端口。
+- SocketAddress getSocketAddress()：接收数据时，返回数据报来源主机的SocketAddress；发送数据时，返回数据报目的地主机的SocketAddress。SocketAddress对象包含了IP地址和端口信息。
+
+#### 使用MulticastSocket实现多点广播 ####
+DatagramSocket只允许数据报发送给指定的目标地址，MulticastSocket可以将数据报以广播方式发送到多个客户端。
+
+IP协议为多点广播提供了特俗的IP地址，范围是224.0.0.0至239.255.255.255.
+
+MulticastSocket是实现多点广播的关键，当MulticastSocket把一个DatagramPacket发送到多点广播的IP地址时，该数据报将被自动广播到加入到该地址的所有MulticastSocket。
+
+MulticastSocket事实上是DatagramSocket的子类，因此其常用的构造器也类似：
+
+- public MulticastSocket()
+- public MulticastSocket(int port)
+- public MulticastSocket(SocketAddress bindaddr)
+
+将MulticastSocket加入和删除到指定的多点广播IP地址的方法：
+
+- joinGroup(InetAddress multicastAddr)
+- leaveGroup(InetAddress multicastAddr)
+
+仅用于发送数据报的MulticastSocket对象，可以只使用默认地址和随机端口即可；
+接受用的MulticastSocket对象必须具有指定端口，否则发送方无法确定发送数据报的目标端口。
+
+MulticastSocket用于发送和接受数据报的方法与DatagramSocket的完全一样，但MulticastSocket多了一个setTimeToLive(int ttl)方法。ttl参数用于设置数据报最多可以跨过多少个网络：0表示应停留在本地主机；1（默认值）表示数据报发送到本地局域网；32表示只能发送的本站点的网络；64表示发送到本地区；128表示本大洲；255表示可以发送到所有地方。
+
+使用MulticastSocket进行多点广播时，所有的通信实体之间都是平等的。
+
+### 使用代理服务器 ###
+Java 5开始，java.net包下提供了Proxy和ProxySelector两个类。Proxy代表一个代理服务器，可以在打开URLConnection连接时指定Proxy，创建Socket连接时也可以指定Proxy；而ProxySelector代表一个代理选择器，它提供了对代理服务器更灵活的控制，可以对HTTP，HTTPS，FTP，SOCKS等进行分别设置，还可以设置不需要通过代理服务器的主机和地址。
+
+#### 直接使用Proxy创建连接 ####
+使用构造器`Proxy(Proxy.Type type, SocketAddress sa)`，sa指定代理服务器的地址，type指定该代理服务器的类型：
+
+- Proxy.Type.DIRECT
+- Proxy.Type.HTTP
+- Proxy.Type.SOCKS
+
+URL包含了一个使用代理服务器建立连接的方法，Socket则提供了使用代理服务器的构造器：
+
+- URLConnection openConnection(Proxy proxy)
+- Socket(Proxy proxy)
+
+#### 使用ProxySelector自动选择代理服务器 ####
+ProxySelector代表一个代理选择器，本身是一个抽象类，开发者通过继承该类来实现自己的代理选择器。该类有2个抽象方法：
+
+- List<Proxy> select(URI uri)
+- connectFailed(URI uri, SocketAddress sa, IOException ioe)
+
+使用ProxySelector的setDefault(Proxy proxy)静态方法来注册默认的代理选择器。系统默认的代理选择器在使用系统设置的代理服务器失败时，会采用直连的方式连接远程资源。它的select方法会根据系统属性来决定使用哪个代理服务器。和代理服务器有关的常用系统属性名：
+
+- http.proxyHost
+- http.proxyPort：这两个属性前面的http都可以更改为https，ftp等；
+- http.nonProxyHosts：不需要使用代理服务器的主机，支持使用`*`通配符；支持多个地址，之间用`|`分隔
 
 ## Chapter 18 类加载机制和反射 ##
 

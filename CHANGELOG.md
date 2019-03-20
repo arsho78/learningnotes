@@ -1,5 +1,14 @@
 # learning notes changelog #
 
+## 2019-03-20 ##
+### Added ###
+- ***Immutables***笔记（Features和Style）
+- ***Debian_Diary***安装node.js和npm，以及git相关工具（commitizen，commitlint）
+
+## 2019-03-14 ##
+### Added ###
+- ***疯狂Java讲义***第十七章`网络编程`的学习笔记
+
 ## 2019-03-13 ##
 ### Modified ###
 - ***Effective Java*** 初步完成全部校验
