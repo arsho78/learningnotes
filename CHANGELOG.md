@@ -1,5 +1,22 @@
 # learning notes changelog #
 
+## 2019-07-02 ##
+### Added ###
+- ***轻量级Java EE 企业应用实战***Spring笔记
+- ***轻量级Java EE 企业应用实战***Hibernate笔记
+- ***Spring + MyBatis 企业应用实战***Spring MVC笔记
+- Maven笔记
+- Tomcat笔记
+- MySQL笔记
+- Git笔记
+- Struts2 笔记
+- Light-JavaEE 笔记
+
+## 2019-03-30 ##
+### Added ###
+- ***maven-archetype***创建自定义archetype组以及从本地仓库中删除artifact的方法
+- ***mysql***安装mysql后修改root用户登录方式和默认数据目录的方法
+
 ## 2019-03-20 ##
 ### Added ###
 - ***Immutables***笔记（Features和Style）
