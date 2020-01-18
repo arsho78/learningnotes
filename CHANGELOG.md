@@ -1,5 +1,10 @@
 # learning notes changelog #
 
+## 2019-07-27 ##
+### Modified ###
+- Spring笔记校正（未完）
+- Hibernate笔记校正（未完）
+
 ## 2019-07-02 ##
 ### Added ###
 - ***轻量级Java EE 企业应用实战***Spring笔记
