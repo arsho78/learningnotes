@@ -1,5 +1,19 @@
 # learning notes changelog #
 
+## 2020-02-13 ##
+### Added ###
+- ***docker***： docker 学习笔记
+
+## 2019-10-08 ##
+### Added ###
+- ***jbehave*** : jbeahve.org 官方文档中基础部分的翻译（中英）
+- ***Debian_Diary***
+	+ 为 Linux 下的 Firefox 添加显示 Markdown 文件的功能
+
+### Modified ###
+- Debian_Diary.md
+	+ 采用\`\`\`标识代码块，并为所有的代码添加了代码语言标识
+
 ## 2019-07-02 ##
 ### Added ###
 - ***轻量级Java EE 企业应用实战***Spring笔记
