@@ -27,19 +27,19 @@ Hibernate不推荐使用`DriverManager`连接数据库，而是推荐使用数�
 2. 获取`SessionFactory`
 	1. 传统方法：使用`Configuration`
 
-		// 使用hibernate.cfg.xml配置文件创建Configuration对象
-		Configuration config = new Configuration().configure();
-		使用Configuration对象创建SessionFactory对象
-		SessionFactory sf = config.buildSessionFactory();
+			// 使用hibernate.cfg.xml配置文件创建Configuration对象
+			Configuration config = new Configuration().configure();
+			使用Configuration对象创建SessionFactory对象
+			SessionFactory sf = config.buildSessionFactory();
 	
 	2. Hibernate5.x推荐的方法：使用`Metadata`
 
-		// 使用hibernate.cfg.xml配置文件创建ServiceRegistry对象
-		StandardServiceRegistry registry = new StandardServiceRegistryBuilder().configure().build();
-		// 使用ServiceRegistry对象创建Metadata对象
-		Metadata metadata = new MetadataSources(registry).buildMetadata();
-		// 使用Metadata创建SessionFactory对象
-		SessionFactory sf = metadata.buildSessionFactory();
+			// 使用hibernate.cfg.xml配置文件创建ServiceRegistry对象
+			StandardServiceRegistry registry = new StandardServiceRegistryBuilder().configure().build();
+			// 使用ServiceRegistry对象创建Metadata对象
+			Metadata metadata = new MetadataSources(registry).buildMetadata();
+			// 使用Metadata创建SessionFactory对象
+			SessionFactory sf = metadata.buildSessionFactory();
 		
 3. 获取`Session`并用其打开事务
 
@@ -298,7 +298,7 @@ Hibernate中的持久化类基本上都是POJO，但仍应该遵守以下规则�
 
 - `update()`：脱管->持久化；
 - `merge()`：生成对象的副本，该副本处于持久化状态，原对象还是处于脱管状态；
-- `updateOrSave()`：如果实例处于瞬态，则执行`save()`；如果处于脱管状态，则执行`update()`；
+- `saveOrUpdate()`：如果实例处于瞬态，则执行`save()`；如果处于脱管状态，则执行`update()`；
 - `Session.LockRequest`的`lock()`方法也可以将某个脱管对象重新持久化，但该对象必须没有被修改过。
 
 #### 删除持久化实体 ####
@@ -327,7 +327,7 @@ Hibernate的PO类通常采用以下两个注解来修饰：
 `uniqueConstraints` | 否       | 为持久化类所映射的表设置唯一约束，属性值是一个`@UniqueConstraint`注解的数组
 
 - `@UniqueConstraint`：用于为数据表定义唯一约束，只有一个属性:
-	- 'columnNames`：属性值是一个字符串数组，每个字符串元素代表一个数据列，使用这些数据列的组合作为唯一约束。
+	- `columnNames`：属性值是一个字符串数组，每个字符串元素代表一个数据列，使用这些数据列的组合作为唯一约束。
 - `@Index`：为数据表定义索引。具有如下属性：
 
 属性         | 是否必需 | 说明
@@ -553,7 +553,7 @@ Hibernate使用标准的`@CollectionTable`映射保存集合属性的表。该�
 
 `List`和`Set`集合类型的属性必须显式地初始化，否则程序运行时会抛出`NullPointerException`异常。
 
-集合属性可以使用泛型来限制集合元素的类型，这样可以无须指定`@ElementCollection`注解的`targetClass`属性。但仍然推荐显式设置`targetClass`属性，从而减轻Hibernate的识别负担。`List`集合和数组类型的属性可以用关联持久化对象的外键和集合索引列作为联合主键。
+集合属性可以使用泛型来限制集合元素的类型，这样可以无须指定`@ElementCollection`注解的`targetClass`属性。但仍然推荐显式设置`targetClass`属性，从而减轻Hibernate的识别负担。同一个持久化对象所包含的集合元素的索引是不会重复的，因此`List`集合和数组类型的属性可以用关联持久化对象的外键和集合索引列作为联合主键。
 
 #### 数组属性 ####
 
@@ -563,7 +563,7 @@ Hibernate对`List`和数组的处理几乎完全一样。
 
 与前两种集合属性不同，`Set`集合是无序，不可重复的集合，所以无须使用`@OrderColumn`注解映射索引列。但同样需要`@ElementCollection`和`@CollectionTable`来分别映射集合属性和保存集合元素的表，如果集合元素是基本类型及其包装类，`String`，`Date`等类型，也可使用`@Column`映射保存集合元素的数据列。
 
-`List`集合和数组的元素有索引，总是用关联持久化类的外键列和集合元素索引列作为联合主键；而`Set`集合的元素没有索引，因此没有索引列，如果元素列不为空（`@Column`注解的`nullable=false`），则以关联持久化类的外键列和元素列作为联合主键，否则该表没有主键。
+`List`集合和数组的元素有索引，总是用关联持久化类的外键列和集合元素索引列作为联合主键；而`Set`集合的元素没有索引，因此没有索引列，如果元素列不能为空（`@Column`注解的`nullable=false`），则以关联持久化类的外键列和元素列作为联合主键，否则该表没有主键。
 
 #### Map集合属性 ####
 
@@ -580,7 +580,7 @@ Hibernate将以外键列和key列作为联合主键。
 
 如果仅仅是对`Set`集合中的已有元素进行了修改，则Hibernate不会立即更新（update）该元素所对应的数据行。只有在执行插入（insert）和删除（delete）操作时，这些更改才生效。
 
-Hibernate中的关联映射都是采用`Set`集合来管理。在设计良好的Hibernate模型中，1-N关联的1的一端通常不控制关联关系，所有的更新操作都放在N的一端进行处理，从而避免考虑集合的更新性能。此时该集合的映射作为反向集合使用，`List`集合属性将有较好的性能，因为可以在为初始化集合元素的情况下直接向`List`集合中添加新元素（`add()`和`addAll()`方法总是返回true）。`Set`集合则需要先加载所有的元素，并和新元素比较以确定没有重复，因此添加新元素的性能较低。
+Hibernate中的关联映射都是采用`Set`集合来管理。在设计良好的Hibernate模型中，1-N关联的1的一端通常不控制关联关系，所有的更新操作都放在N的一端进行处理，从而避免考虑集合的更新性能。此时该集合的映射作为反向集合使用，`List`集合属性将有较好的性能，因为可以在未初始化集合元素的情况下直接向`List`集合中添加新元素（`add()`和`addAll()`方法总是返回true）。`Set`集合则需要先加载所有的元素，并和新元素比较以确定没有重复，因此添加新元素的性能较低。
 
 当需要删除集合元素时，如果是删除全部元素，Hibernate会执行一个delete语句来实现；但如果只是删除部分元素，Hibernate则需要一个一个元素的删除。此时可以考虑从持久化实例中取出集合，然后清空集合属性值，基于取出的集合进行删减操作（此时的集合与数据库已脱钩，不会对数据库进行任何操作），然后将修改后的集合重新赋值给持久化类的集合属性。
 
@@ -1010,7 +1010,7 @@ JPA本质上是一种ORM规范，提供的只是一些接口，并没有提供�
 - 不能在批量HQL语句中使用连接，显式或者隐式的都不行。但可以在`where`子句中使用子查询；
 - 整个`where`子句是可选的。`where`子句的语法和HQL语句中`where`子句的语法完全相同。
 
-这种语法类似与`PreparedStatement`的`executeUpdate()`语法，返回一个整数值，该值是受此操作影响的记录数量。如果该方法在底层数据库需要转换成多条`update`或`delete`语句，则只能返回最后一条SQL语句影响的记录行数。
+这种语法类似于`PreparedStatement`的`executeUpdate()`语法，返回一个整数值，该值是受此操作影响的记录数量。如果该方法在底层数据库需要转换成多条`update`或`delete`语句，则只能返回最后一条SQL语句影响的记录行数。
 
 ### JPA的DML支持 ###
 
@@ -1032,10 +1032,10 @@ HQL查询依赖于`Query`类，每个`Query`实例对应一个查询对象。使
 4. 如果HQL语句包含参数，则调用`Query`的`setParameter()`方法为参数赋值；
 5. 调用`Query`对象的`getResultList()`或`getSingleResult()`方法返回查询结果列表或单条结果。
 
-HQL的占位符既可以使用英文问号+索引的JPQL占位符语法形式（?N）（推荐使用）；  
+HQL的占位符既可以使用英文问号+索引的JPQL占位符语法形式（?N）（推荐使用）；   
 也可以使用有名字的占位符（英文冒号+占位符名称）。
 
-`Query`的`setParameter(String name, Xxx value)`方法既可以使用参数名，也可以使用参数索引设置参数值。
+`Query`的`setParameter(String name/index, Xxx value)`方法既可以使用参数名，也可以使用参数索引设置参数值（第一个参数始终都是`String`类型）。
 
 `Query`对象可以链式调用`setParameter()`方法来为多个参数赋值。
 
@@ -1078,6 +1078,9 @@ HQL（JPQL）支持使用的多表查询的关键字如下：
 	- 省略`select`关键字时，隐式连接查询返回的结果是多个被查询实体组成的集合；
 	- 省略`select`关键字时，显式连接返回的也是集合，但集合元素是由被查询的持久化对象，所有被关联的持久化对象所组成的数组。
 
+因此，如果想要查询结果只包含直接被查询的对象，则应该使用`select`关键字；  
+另外，可以使用`distinct`关键字来获得不重复的结果。
+
 Hibernate 3.2.3以后的版本中，如果关联实体是单个实体或单个的组件属性，HQL依然可以使用英文点号来隐式连接关联实体或组件；  
 但如果关联实体是集合（包括1-N关联，N-N关联和集合元素是组件等），则必须使用`xxx join`来显式连接关联实体或组件。
 
@@ -1103,6 +1106,14 @@ select还可以选择组件属性包含的属性。
 
 通常情况下，使用select子句查询的结果是集合，集合元素是select后的实例，属性等组成的数组；也可以通过`list(attr...)`显式将集合元素从数组改为List对象；或者调用某个类的构造器，使用选择出来的属性作为构造器参数创建该类的对象。  
 即使select子句选择了某个持久化类的全部属性，Hibernate也只会将他们作为属性处理，而不会组装成该持久化类的对象。  
+select子句可以将选出的属性存入一个`List`对象（默认存入数组）  
+
+		select new list(p.name, p.address) from Person as p
+
+select子句还可以将选出的属性直接封装成类的对象，前提是该类拥有使用这些属性值作为参数的构造器：
+
+		select new ClassTest(p.name, p.address) from Pesron as p
+
 select支持给选中的表达式命名别名，通常和`new map`结合使用：
 
 		// HQL语句返回的结果是集合，其中集合元素是Map对象，以personName作为Map的key，实际选出的值作为Map的value
@@ -1122,7 +1133,7 @@ HQL支持与SQL完全相同的聚集函数：
 
 ### 多态查询 ###
 
-HQL支持多态查询，from后跟持久化类，不仅会查出该持久化类的全部实例，还会查询出该类的子类的全部实例。
+HQL支持多态查询，from后跟持久化类，不仅会查出该持久化类的全部实例，还会查询出该类的子类的全部实例。多态查询的结果不能使用`Query.scroll()`方法。
 
 ### HQL查询的where子句 ###
 
@@ -1134,7 +1145,7 @@ Hibernate 3.2.3以后，只有当属性引用的是普通组件属性或者单�
 `=`运算符不仅可以用来比较属性的值，也可以用来比较实例。特殊属性（小写）`id`可以用来表示一个对象的标识符（也可以使用该对象的属性名，使用`id`是一种简洁的写法）。  
 `id`还可以用来代表组件类型的标识符。
 
-在进行多态持久化的情况下，`class`关键字用来存取一个实例的辨别值（discriminator value）。嵌入`where`子句中的Java类名，将被作为该类的辨别值。当`where`子句中的运算符只支持基本类型或者字符串时，`where`子句中的属性表达式必须以基本类型或者字符串结尾，不要使用组件类型属性结尾。
+在进行多态持久化的情况下，`class`关键字用来存取一个实例的辨别值（discriminator value）。嵌入`where`子句中的Java类名，将被作为该类的辨别值。当`where`子句中的运算符只支持基本类型或者字符串时，`where`子句中的属性表达式必须以基本类型或者字符串结尾，不要使用组件类型属性结尾。例如，`like`运算符只能处理字符串。
 
 ### 表达式 ###
 
@@ -1243,7 +1254,7 @@ Hibernate 3.2.3以后，只有当属性引用的是普通组件属性或者单�
 		from Cat cat
 		group by cat.color;
 
-出现在`select`后的属性，要么出现在聚集函数中，要么出现在`group by`的属性列表中。
+出现在`select`后的属性，要么出现在聚集函数中，要么出现在`group by`的属性列表中。换句话说，在聚集函数和`group by`子句中出现的属性必须在select子句中出现。
 
 		// select后出现的id处于group by之后，而name属性则出现在聚集函数中
 		select foo.id, avg(name), max(name)
@@ -1257,16 +1268,19 @@ Hibernate 3.2.3以后，只有当属性引用的是普通组件属性或者单�
 		group by cat.color
 		having cat.color in (eg.Color.TABBY, eg.Color.BLACK)
 
-`having`子句只能在有`group by`子句时才可以使用。`group by`子句与`order by`子句中都不能包含算术表达式。
+`having`子句只能在有`group by`子句时才可以使用。  
+`group by`子句与`order by`子句中都不能包含算术表达式。
 
 ### 子查询 ###
 
-HQL子查询需要底层数据库支持，也需要用英文括号括起来。如果子查询是多行结果集，则应该使用多行运算符。  
-HQL子查询只可以在`select`子句或`where`子句中出现。如果`select`子查询后的列表中包含多项，则在HQL中需要使用一个元组构造符（括号）。
+HQL子查询需要底层数据库支持，也需要用英文括号括起来。  
+如果子查询是多行结果集，则应该使用多行运算符。  
+HQL子查询只可以在`select`子句或`where`子句中出现。  
+如果`select`子查询后的列表中包含多项，则在HQL中需要使用一个元组构造符（括号）。
 
 ### 命名查询 ###
 
-HQL查询支持将查询所用的HQL语句放入注解中，而不是代码中。  
+HQL查询支持将查询所用的HQL语句放入注解或XML映射文件中，而不是代码中，从而提高解耦。  
 Hibernate支持使用标准的`@NamedQuery`注解来配置命名查询，支持如下属性：
 
 属性    | 是否必需 | 说明
@@ -1319,7 +1333,7 @@ Hibernate支持使用标准的`@NamedQuery`注解来配置命名查询，支持�
 `Predicate`，`Expression`都是`Selection`的子接口，`Root`也是`Expression`的子接口。
 
 JPA为每一个实体类都提供了一个元模型类，其类名通常就是实体类的类名添加一个下划线。  
-JPA元模型类的优势在于能更好地利用泛型。
+JPA元模型类的优势在于能更好地利用泛型。通过元模型类读取属性可以获知该属性的类型。
 
 `Predicate`接口代表一个查询条件，该查询条件由`CriteriaBuilder`负责产生，包含了以下常用的方法：
 
@@ -1355,7 +1369,7 @@ JPA元模型类的优势在于能更好地利用泛型。
 `Root`代表条件查询要查询的目标实体。 
 多`Root`查询的实现需要多次调用`CriteriaQuery`的`from()`方法，并使用`multiselect()`指定需要查询的目标实体。
 
-当条件查询包含多个`Root`实体时，JPA要求显式使用`multiselect()`或`select()`方法指定要查询的实体，否则JPA会报异常。
+当条件查询包含多个`Root`实体时，JPA要求显式使用`multiselect()`或`select()`方法指定要查询的实体，否则JPA会报异常。只有一个`Root`实体时，是可以省略`select()`方法的，因为默认就是查询该实体。
 
 ### 关联和动态关联 ###
 
@@ -1724,7 +1738,7 @@ EhCache为例，Hibernate的二级缓存的用法：
 		<ehcache>
 			<diskStore path="java.io.tmpdir"/>
 			<defaultCache
-				maxElementsInMemory="10000" // 设置缓存中最多方多少个对象
+				maxElementsInMemory="10000" // 设置缓存中最多放多少个对象
 				eternal="false" 	// 设置缓存是否永久有效
 				overflowToDisk="true"  
 	 			timeToIdleSeconds="120"  // 设置缓存的对象多少秒没有被使用就会被清理调
@@ -1819,7 +1833,36 @@ Hibernate提供了一个`EventListenerRegistry`接口，该接口提供了三种
 - `prependListeners()`：该方法有两个重载的版本，都用于将自定义的事件监听器追加到系统默认的事件监听器序列的前面；
 - `setListeners()`：该方法有两个重载的版本，都用于使用自定义的事件监听器代替系统默认的事件监听器序列。
 
-	
+## Hibernate中功能相似的方法的比较 ##	
+
+### save和persist ###
+
+都可见将指定对象转化为持久化状体，该对象的属性将被保存到数据库。
+
+- `Serializable save(Object obj)`方法方法会立即将持久化对象对应的数据插入数据库，且自动生成标识属性（即对应记录的主键值）并返回；
+- `void persist(Object obj)`方法没有任何返回值，因此在一个事务外部被调用时，不会立即生成`insert`语句。
+
+### get和load ###
+
+都用于根据标识属性值从数据库中加载持久化实例，区别在于是否使用延迟加载。
+
+- `Object get(Class entityClass, Serializable id)`：不使用延迟加载，立即从数据库中获取持久化对象，如果没有相应的记录，返回null;
+- `Object load(Class entityClass, Serializable id)`：可以使用延迟加载，如果数据库中没有相应的记录，则：
+	- 没有使用延迟加载：抛出`HibernateException`异常；
+	- 使用了延迟加载，返回一个未初始化的代理对象。
+
+### saveOrUpdate和merge ###
+
+都用于更新持久化对象的数据。
+
+- `void saveOrUpdate(Object obj)`：根据指定对象是否曾经被持久化来决定调用`save()`或`update()`方法来保存该对象，处于脱管状态的对象也将进入持久化状态；
+- `Object merge(Object obj)`：不改变指定对象的状态，如果：
+	- session中存在相同标识的实例（指定对象处于持久化状态），则提供的对象的状态将覆盖已有对象的数据；
+	- session中不存在相同标识的实例（指定对象处于脱管状态）：
+		- 从数据库中加载相应的实例，然后使用指定对象的数据覆盖新读出对象的数据，指定对象的状态不改变（维持脱管状态）；
+		- 数据库中没有相应的实例，则创建新的持久化实例。
+	- 返回处于持久化状态的对象（指定对象的副本）。
+
 
 
 

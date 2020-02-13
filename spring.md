@@ -783,6 +783,8 @@ Spring中常用的2种Bean后处理器：
 - `BeanNameAutoProxyCreator`：根据Bean实例的name属性，创建Bean实例的代理；
 - `DefaultAdvisorAutoProxyCreator`：根据提供的`Advisor`，为容器中的所有Bean实例创建代理。
 
+Bean的代理就是对目标Bean进行增强，在其基础上进行修改得到新的Bean。
+
 #### 容器后处理器 ####
 
 容器后处理器负责对容器本身进行增强，必须实现`BeanFactoryPostProcessor`接口，包含一个方法：
@@ -883,7 +885,7 @@ Spring中用来标注Spring Bean的注解：
 
 #### 使用@PostConstruct和@PreDestroy定制生命周期行为 ####
 
-@PostConstruct和@PreDestroy同样位于javax.annotation包下。他们的行为和XML配置文件中指定`<bean.../>`元素的`init-method`和`destroy-Method`属性的效果大致一样。
+@PostConstruct和@PreDestroy同样位于javax.annotation包下。他们的行为和XML配置文件中指定`<bean.../>`元素的`init-method`和`destroy-Method`属性的效果大致一样，分别用于标准初始化方法和销毁方法。
 
 #### 使用@DependOn和@Lazy改变初始化行为 ####
 
@@ -892,7 +894,11 @@ Spring中用来标注Spring Bean的注解：
 
 #### 自动装配和精确装配 ####
 
-`@Autowired`注解指定自动装配，可以修饰setter方法，普通方法，实例变量和构造器等。标注setter方法时，默认采用`byType`自动装配策略。修饰实例变量时，会把容器中与该实例变量类型匹配的Bean设置为该实例变量的值。如果标注的是数组类型的成员变量，则会自动搜索容器中所有该类型的Bean实例，并将这些Bean实例作为数组元素来创建数组，然后将该数组赋给该数组类型的变量。对集合类型的实例变量或形参为集合的方法的处理与数组完全相同，但要求这些集合必须使用泛型指定了集合元素的类型。
+`@Autowired`注解指定自动装配，可以修饰setter方法，普通方法，实例变量和构造器等。  
+标注setter方法时，默认采用`byType`自动装配策略。  
+修饰实例变量时，会把容器中与该实例变量类型匹配的Bean设置为该实例变量的值。  
+如果标注的是数组类型的成员变量，则会自动搜索容器中所有该类型的Bean实例，并将这些Bean实例作为数组元素来创建数组，然后将该数组赋给该数组类型的变量。  
+对集合类型的实例变量或形参为集合的方法的处理与数组完全相同，但要求这些集合必须使用泛型指定了集合元素的类型。
 
 如果容器中出现多个可匹配类型，会导致异常。Spring提供了一个`@Primary`注解，用于将指定的候选Bean作为当选者。
 
@@ -935,7 +941,7 @@ Spring中用来标注Spring Bean的注解：
 
 使用`@Autowired`注解可以指定一个`required`属性，默认为`true`，表示该注解修饰的Field或setter方法必须被依赖注入，否则Spring在初始化容器时报错。
 
-`@Autowired`和在XML配置文件中指定`autowire="byType"`的自动装配不一样，如果找不到自动装配的候选Bean，XML配置的容器只是不执行注入，不会报错，但使用`@Autowired`配置就会报错。有两种方法可以避免报错，而只是不执行依赖注入：
+`@Autowired`和在XML配置文件中指定`autowire="byType"`的自动装配不一样，如果找不到自动装配的候选Bean，XML配置的容器只是不执行注入，不会报错，但使用`@Autowired`配置就会报错。有两种方法可以避免报错，其实只是不执行依赖注入：
 
 - 将`@Autowired`的required属性设置为false
 - 使用Spring5新增的注解`@Nullable`
@@ -1320,6 +1326,8 @@ Spring内置缓存的实现只是一种内存中的缓存，并非真正的缓�
 
 Spring内置缓存实现使用`SimpleCacheManager`作为缓存管理器，底层直接使用了JDK的`ConcurrentMap`来实现缓存，`SimpleCacheManager`使用`ConcurrentMapCacheFactoryBean`作为缓存区，每个`ConcurrentMapCacheFactoryBean`配置一个缓存区，可以为每个缓存区设置名字，从而在后面使用注解驱动缓存时将缓存数据放入指定的缓存区。
 
+一般情况下，应用中有多少个组件需要缓存，就配置多少个缓存区。
+
 **2. EhCache缓存实现的配置**
 
 需要在类加载路径下添加EhCache的配置文件`ehcache.xml`，并在Spring配置文件中添加如下配置：
@@ -1332,7 +1340,7 @@ Spring内置缓存实现使用`SimpleCacheManager`作为缓存管理器，底层
 					class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean"
 					p:configLocation="classpath:ehcache.xml"
 					p:shared="false"/>
-		<!-- 配置基于EhCahe的缓存管理器，并将EhCache的CacheManager注入到该缓存管理器Bean -->
+		<!-- 为Spring容器配置基于EhCahe的缓存管理器，并将EhCache的CacheManager注入到该缓存管理器Bean -->
 		<bean id="cacheManager"
 					class="org.springframework.cache.ehcache.EhCacheCacheManager"
 					p:cacheManager-ref="ehcacheManager"/>
@@ -1344,9 +1352,14 @@ Spring内置缓存实现使用`SimpleCacheManager`作为缓存管理器，底层
 - 标注类时：在类级别上缓存，该类的实例的任何方法都需要缓存，并且共享同一个缓存区；
 - 标注方法时：在方法级别上缓存，调用该方法时才需要缓存。
 
+使用了缓存区结果的方法是不会执行其方法体的。
+
 **1. 类级别的缓存**
 
-程序调用该类的任意方法时，只要传入的参数相同，Spring就会使用缓存。具体来说，当程序第一次调用该类的实例的某个方法时，Spring缓存机制会将该方法返回的数据放入指定缓存区-`@Cacheable`注解的`value`属性值指定的缓存区（该缓存区必须在之前已经配置过）。以后程序调用该类实例的任何方法时，只要传入的参数相同，Spring就不会真的执行该方法，而是直接使用缓存区中的数据。
+程序调用该类的任意方法时，只要传入的参数相同，Spring就会使用缓存。  
+具体来说，当程序第一次调用该类的实例的某个方法时，Spring缓存机制会将该方法返回的数据放入指定缓存区-`@Cacheable`注解的`value`属性值指定的缓存区（该缓存区必须在之前已经配置过）。  
+以后程序调用该类实例的任何方法时，只要传入的参数相同，Spring就不会真的执行该方法，而是直接使用缓存区中的数据。 
+因此，当两个方法的参数完全相同，但返回类型却不同时，可能会引发异常：第二个方法会将第一个方法存入缓存的结果取出并尝试强制类型转换为自己的返回类型，从而可能引发类型转换异常。
 
 注意，类级别的缓存默认以所有方法参数作为key来缓存方法返回的数据，同一个类的不同方法，只要调用方法时传入的参数相同，Spring都会直接利用缓存区中的数据。例如
 
@@ -1531,7 +1544,7 @@ JDBC数据源的局部事务管理器配置如下：
 
 实际上，Spring提供了如下两种事务管理方式：
 
-- 编程式事务管理：面向`PlatformTransactionManager`接口编程，在代码中获取容器咋红`transactionManager`Bean，该Bean总是`PlatformTransactionManager`的实例，所以可以调用它的3个方法来开始事务，提交事务和回滚事务；
+- 编程式事务管理：面向`PlatformTransactionManager`接口编程，在代码中获取容器中的`transactionManager`Bean，该Bean总是`PlatformTransactionManager`的实例，所以可以调用它的3个方法来开始事务，提交事务和回滚事务；
 - 声明式事务管理：无须在Java代码中写任何事务操作代码，通过在XML文件中为业务组件配置事务代理（AOP代理的一种），AOP为事务代理所织入的增强处理也有Spring提供：在目标方法执行前织入开始事务，在目标方法执行结束后织入结束事务。
 
 #### 使用XML Schema配置事务策略（声明式事务管理） ####
@@ -1593,6 +1606,8 @@ Spring的XML Schema方式提供了简洁的事务配置策略，使用`tx:`命�
 						p:dataSource-ref="dataSource"/>
 			<!-- 根据注解来生成事务处理 -->
 			<tx:annotation-driven transaction-manager="transactionManager"/>
+
+如果需要对同一个包中的多个类配置相同的事务处理，推荐使用XML配置文件，如果需要为每个类配置不同的事务处理，则可以考虑使用`@Transactional`注解为每个类单独配置（也可以使用XML配置文件）。
 
 ### Spring整合Struts2 ###
 
