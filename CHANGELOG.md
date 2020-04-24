@@ -1,6 +1,8 @@
 # learning notes changelog #
 
 ## 2020-04-24 ##
+### Added ###
+- Design Pattern 笔记（只包含Flyweight）
 ### Modified ###
 - `Code_Complete.md` 改名为 `code_complete.md`
 - `Debian_Diary.md` 改名为 `debian_diary.md`
