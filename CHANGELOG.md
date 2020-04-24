@@ -1,5 +1,15 @@
 # learning notes changelog #
 
+## 2020-04-24 ##
+### Modified ###
+- `Code_Complete.md` 改名为 `code_complete.md`
+- `Debian_Diary.md` 改名为 `debian_diary.md`
+- `light-javaee.md` 改名为 `light_javaee.md`
+
+## 2020-02-04 ##
+### Added ###
+- 深入浅出 Spring Boot 2.x 笔记（3, 4章）
+
 ## 2019-07-27 ##
 ### Modified ###
 - Spring笔记校正（未完）
