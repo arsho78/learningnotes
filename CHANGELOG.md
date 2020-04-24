@@ -9,9 +9,22 @@
 - `Debian_Diary.md` 改名为 `debian_diary.md`
 - `light-javaee.md` 改名为 `light_javaee.md`
 
+## 2020-02-13 ##
+### Added ###
+- ***docker***： docker 学习笔记
+
 ## 2020-02-04 ##
 ### Added ###
 - 深入浅出 Spring Boot 2.x 笔记（3, 4章）
+
+## 2019-10-08 ##
+### Added ###
+- ***jbehave*** : jbeahve.org 官方文档中基础部分的翻译（中英）
+- ***Debian_Diary***
+	+ 为 Linux 下的 Firefox 添加显示 Markdown 文件的功能
+### Modified ###
+- Debian_Diary.md
+	+ 采用\`\`\`标识代码块，并为所有的代码添加了代码语言标识
 
 ## 2019-07-27 ##
 ### Modified ###
