@@ -11,12 +11,13 @@ docker create imageName
 docker start containerId
 docker ps
 docker ps -a
-docker prune
+docker system prune
 docker stop containerId
 docker kill containerId
-docker attach containerId|containerName *ref[2]*
+docker attach containerId|containerName # *ref[2]*
+docker logs containerId
 docker exec -it containerId command args
-docker build -t dockerhubId/dockerProjectName:version(default value is 'lates') .
+docker build -t dockerhubId/dockerProjectName:version(default value is 'latest') .
 docker build -f Dockerfile.name .
 docker commit -c 'CMD ["start command"]' containerId
 
@@ -27,7 +28,7 @@ docker-compose up -d
 docker-compose down
 docker-compose ps     
 
-minikube start *ref[3]*
+minikube start # *ref[3]*
 minikube ip
 kubectl apply -f object-config.yaml
 kubectl apply -f k8sdir # apply all the config files in this folder
@@ -35,15 +36,15 @@ kubectl get pods|services|kinds
 kubectl describe <objectType> <objectName>
 kubectl delete -f object-config.yaml # delete an object in the cluster
 kubectl set image <objectType>/<objectName> <containerName=newImageName>
-kubectl create secret genric|tls|docker-registry <secret-name> --from-literal key=value
+kubectl create secret generic|tls|docker-registry <secret-name> --from-literal key=value
 eval $(minikube docker-env) # switch docker to the one in VM
 ```
 
-ref[1]: Bookmarking a container directory makes docker exclude this directory in volume, which means, instead of referencing this directory back to localhost file system, docker will let the container to create and manage this directory. In other words, this directory is created inside the container and not exposed to outside.
+*ref[1]*: Bookmarking a container directory makes docker exclude this directory in volume, which means, instead of referencing this directory back to localhost file system, docker will let the container to create and manage this directory. In other words, this directory is created inside the container and not exposed to outside.
 
-ref[2]: `attach` will automatically attach localhost terminal to the root process inside given container.
+*ref[2]*: `attach` will automatically attach localhost terminal to the root process inside given container.
 
-ref[3]: minikube 在本地系统中创建了一个 VM，所有的 service 和 pod 都运行于此 VM 中，它拥有自己的 ip 地址，因此不能使用 localhost 来访问。
+*ref[3]*: minikube 在本地系统中创建了一个 VM，所有的 service 和 pod 都运行于此 VM 中，它拥有自己的 ip 地址，因此不能使用 localhost 来访问。
 
 on dockerhub.com, an image tagged with "alpine" means this image only includes required program and keeps itself as small as possible, for example "node:alpine" only includes node.js with minimum other programs.
 

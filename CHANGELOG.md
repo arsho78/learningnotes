@@ -1,5 +1,9 @@
 # learning notes changelog #
 
+## 2020-04-29 ##
+### Modified ###
+- fix some typo in `docker.md`
+
 ## 2020-04-24 ##
 ### Added ###
 - Design Pattern 笔记（只包含Flyweight）
@@ -19,7 +23,7 @@
 
 ## 2019-10-08 ##
 ### Added ###
-- ***jbehave*** : jbeahve.org 官方文档中基础部分的翻译（中英）
+- ***jbehave*** : jbehave.org 官方文档中基础部分的翻译（中英）
 - ***Debian_Diary***
 	+ 为 Linux 下的 Firefox 添加显示 Markdown 文件的功能
 ### Modified ###
